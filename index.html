@@ -25,7 +25,13 @@
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--bg); font-family: var(--font-body); color: var(--ink); transition: background .2s ease, color .2s ease; }
-  .basecamp { padding: 24px 20px 60px; max-width: 720px; margin: 0 auto; }
+  .basecamp { padding: 28px 24px 60px; max-width: 1180px; margin: 0 auto; }
+
+  /* Desktop dashboard layout: charts/history left, glance + entry right */
+  .layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
+  .col-main, .col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .col-main > .panel, .col-side > .panel { margin-top: 0; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
   h1, h2, h3 { font-family: var(--font-display); margin: 0; }
   .muted { color: var(--ink-soft); font-size: 12.5px; }
   .mono { font-family: var(--font-mono); }
@@ -617,7 +623,7 @@ function svgTrailHero(profile, currentWeight, progressPct) {
 
   return `
   <div class="panel" style="padding-bottom:12px">
-    <svg viewBox="0 0 640 150" width="100%" height="150" style="display:block">
+    <svg viewBox="0 0 640 150" style="display:block;width:100%;height:auto">
       <defs>
         <linearGradient id="trailFade" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stop-color="var(--line)" />
@@ -810,107 +816,112 @@ function render() {
       <div class="stat-card${d.remaining < 0 ? " warn" : " good"}"><div class="icon-row">⚖️ <span class="label">Remaining</span></div><div class="value">${d.remaining}<span class="unit">kcal</span></div></div>
     </div>
 
-    ${macroPanel(d)}
-
-    <div class="panel">
-      <div class="panel-head"><h3>Weight trend</h3><span class="muted">${fmt(d.currentWeight)} kg current · ${fmt(profile.goalWeight)} kg goal</span></div>
-      ${svgWeightChart(d.chartData, d.maData, profile.goalWeight)}
-      <div class="note" style="margin-top:12px">${projectionText(d)}</div>
-      <div class="inline-form">
-        <input type="number" step="0.1" id="wInput" placeholder="Weight (kg)" />
-        <input type="date" id="wDate" class="cal-input" style="flex:0 0 140px" value="${d.today}" max="${d.today}" />
-        <button class="btn" id="logWeightBtn">+ Log</button>
-      </div>
-      ${d.recentWeights.length ? `<ul class="log-list" style="margin-top:10px">
-        ${d.recentWeights.map((w) => `<li>
-          <span class="entry-main" data-edit="weight" data-id="${w.id}"><span class="entry-desc">${prettyDate(w.date)}</span></span>
-          <span class="cal">${fmt(w.weight)} kg</span>
-          <button class="del" data-del="weight" data-id="${w.id}" title="Delete">×</button>
-        </li>`).join("")}
-      </ul>` : ""}
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h3>Activity per day</h3><span class="muted">tap a bar · food red, activity green</span></div>
-      ${svgActivityChart(d.dailyActivityData, d.targets.target, d.activeDay)}
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h3>Weekly summary</h3><span class="muted">🔥 ${d.streak}-day on-target streak</span></div>
-      ${d.weeks.length ? `<table class="wtable">
-        <thead><tr><th>Week of</th><th>Days</th><th>Avg in</th><th>Avg net</th><th>vs target</th><th>Est. Δ</th></tr></thead>
-        <tbody>
-          ${d.weeks.map((w) => `<tr>
-            <td>${w.label}</td>
-            <td>${w.days}</td>
-            <td>${Math.round(w.avgIn)}</td>
-            <td>${Math.round(w.avgNet)}</td>
-            <td><span class="pill ${w.vsTarget <= 0 ? "under" : "over"}">${w.vsTarget >= 0 ? "+" : ""}${Math.round(w.vsTarget)}</span></td>
-            <td style="color:${w.kgChange <= 0 ? "var(--moss)" : "var(--rust)"}">${w.kgChange >= 0 ? "+" : ""}${fmt(w.kgChange, 2)} kg</td>
-          </tr>`).join("")}
-        </tbody>
-      </table>
-      <div class="muted" style="margin-top:8px">"Est. Δ" is projected weight change from that week's calorie balance (7700 kcal ≈ 1 kg).</div>`
-      : `<p class="muted" style="padding:12px 0">Log a few days to see weekly averages.</p>`}
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h3>${d.activeDay === d.today ? "Today" : prettyDate(d.activeDay)}</h3><span class="muted">${d.activeDayFoodTotal} in · ${d.activeDayBurnTotal} out · ${d.activeDayNet} net</span></div>
-      ${d.activeDayMacros.total ? `<div class="muted" style="margin-bottom:6px">P ${Math.round(d.activeDayMacros.protein)}g · C ${Math.round(d.activeDayMacros.carbs)}g · F ${Math.round(d.activeDayMacros.fat)}g</div>` : ""}
-      <ul class="log-list">
-        ${d.activeDayFood.length === 0 && d.activeDayBurn.length === 0 ? `<li class="muted empty">Nothing logged for this day.</li>` : ""}
-        ${d.activeDayFood.map((f) => entryRow("food", f, true)).join("")}
-        ${d.activeDayBurn.map((b) => entryRow("burn", b, false)).join("")}
-      </ul>
-    </div>
-
-    <div class="two-col">
-      <div class="panel">
-        <div class="panel-head"><h3>Food today</h3><span class="muted">${d.todaysFood.length} entr${d.todaysFood.length === 1 ? "y" : "ies"}</span></div>
-        <ul class="log-list">
-          ${d.todaysFood.length === 0 ? `<li class="muted empty">Nothing logged yet today.</li>` : ""}
-          ${d.todaysFood.map((f) => entryRow("food", f, true)).join("")}
-        </ul>
-        <div class="inline-form">
-          <input id="foodDesc" placeholder="What did you eat?" />
-          <input type="number" id="foodCal" class="cal-input" placeholder="kcal" />
-          <button class="btn" id="logFoodBtn">+</button>
+    <div class="layout">
+      <div class="col-main">
+        <div class="panel">
+          <div class="panel-head"><h3>Weight trend</h3><span class="muted">${fmt(d.currentWeight)} kg current · ${fmt(profile.goalWeight)} kg goal</span></div>
+          ${svgWeightChart(d.chartData, d.maData, profile.goalWeight)}
+          <div class="note" style="margin-top:12px">${projectionText(d)}</div>
+          <div class="inline-form">
+            <input type="number" step="0.1" id="wInput" placeholder="Weight (kg)" />
+            <input type="date" id="wDate" class="cal-input" style="flex:0 0 150px" value="${d.today}" max="${d.today}" />
+            <button class="btn" id="logWeightBtn">+ Log</button>
+          </div>
+          ${d.recentWeights.length ? `<ul class="log-list" style="margin-top:10px">
+            ${d.recentWeights.map((w) => `<li>
+              <span class="entry-main" data-edit="weight" data-id="${w.id}"><span class="entry-desc">${prettyDate(w.date)}</span></span>
+              <span class="cal">${fmt(w.weight)} kg</span>
+              <button class="del" data-del="weight" data-id="${w.id}" title="Delete">×</button>
+            </li>`).join("")}
+          </ul>` : ""}
         </div>
-        <div class="macro-form">
-          <input type="number" id="foodP" placeholder="P" title="Protein (g)" />
-          <input type="number" id="foodC" placeholder="C" title="Carbs (g)" />
-          <input type="number" id="foodF" placeholder="F" title="Fat (g)" />
-          <span class="muted">macros optional · kcal auto-fills from macros</span>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Activity per day</h3><span class="muted">click a bar · food red, activity green</span></div>
+          ${svgActivityChart(d.dailyActivityData, d.targets.target, d.activeDay)}
         </div>
-        ${d.favorites.length ? `<div class="muted" style="margin-top:12px">Quick add:</div>
-        <div class="chips" id="favChips">
-          ${d.favorites.map((f, i) => `<span class="chip" data-fav="${i}">${escapeHtml(f.description.length > 26 ? f.description.slice(0, 25) + "…" : f.description)}<span class="chip-cal">${f.calories}</span></span>`).join("")}
-        </div>` : ""}
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Activity today</h3><span class="muted">${d.todaysBurn.length} entr${d.todaysBurn.length === 1 ? "y" : "ies"}</span></div>
-        <ul class="log-list">
-          ${d.todaysBurn.length === 0 ? `<li class="muted empty">No activity logged yet today.</li>` : ""}
-          ${d.todaysBurn.map((b) => entryRow("burn", b, false)).join("")}
-        </ul>
-        <div class="inline-form">
-          <input id="burnDesc" placeholder="Run, hike, home workout…" />
-          <input type="number" id="burnCal" class="cal-input" placeholder="kcal" />
-          <button class="btn" id="logBurnBtn">+</button>
+
+        <div class="panel">
+          <div class="panel-head"><h3>${d.activeDay === d.today ? "Today" : prettyDate(d.activeDay)}</h3><span class="muted">${d.activeDayFoodTotal} in · ${d.activeDayBurnTotal} out · ${d.activeDayNet} net</span></div>
+          ${d.activeDayMacros.total ? `<div class="muted" style="margin-bottom:6px">P ${Math.round(d.activeDayMacros.protein)}g · C ${Math.round(d.activeDayMacros.carbs)}g · F ${Math.round(d.activeDayMacros.fat)}g</div>` : ""}
+          <ul class="log-list">
+            ${d.activeDayFood.length === 0 && d.activeDayBurn.length === 0 ? `<li class="muted empty">Nothing logged for this day.</li>` : ""}
+            ${d.activeDayFood.map((f) => entryRow("food", f, true)).join("")}
+            ${d.activeDayBurn.map((b) => entryRow("burn", b, false)).join("")}
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Weekly summary</h3><span class="muted">🔥 ${d.streak}-day on-target streak</span></div>
+          ${d.weeks.length ? `<div style="overflow-x:auto"><table class="wtable">
+            <thead><tr><th>Week of</th><th>Days</th><th>Avg in</th><th>Avg net</th><th>vs target</th><th>Est. Δ</th></tr></thead>
+            <tbody>
+              ${d.weeks.map((w) => `<tr>
+                <td>${w.label}</td>
+                <td>${w.days}</td>
+                <td>${Math.round(w.avgIn)}</td>
+                <td>${Math.round(w.avgNet)}</td>
+                <td><span class="pill ${w.vsTarget <= 0 ? "under" : "over"}">${w.vsTarget >= 0 ? "+" : ""}${Math.round(w.vsTarget)}</span></td>
+                <td style="color:${w.kgChange <= 0 ? "var(--moss)" : "var(--rust)"}">${w.kgChange >= 0 ? "+" : ""}${fmt(w.kgChange, 2)} kg</td>
+              </tr>`).join("")}
+            </tbody>
+          </table></div>
+          <div class="muted" style="margin-top:8px">"Est. Δ" is projected weight change from that week's calorie balance (7700 kcal ≈ 1 kg).</div>`
+          : `<p class="muted" style="padding:12px 0">Log a few days to see weekly averages.</p>`}
         </div>
       </div>
-    </div>
 
-    <div class="panel">
-      <div class="panel-head"><h3>Water today</h3><span class="muted">goal ${d.waterGoal} ml</span></div>
-      <div class="water-big">${d.waterToday}<span class="unit">/ ${d.waterGoal} ml</span></div>
-      <div class="track" style="margin-top:10px"><div class="fill" style="width:${waterPct}%;background:var(--teal)"></div></div>
-      <div class="water-btns">
-        <button class="btn secondary small" data-water="250">+250 ml</button>
-        <button class="btn secondary small" data-water="500">+500 ml</button>
-        <input type="number" id="waterCustom" class="cal-input" placeholder="ml" style="flex:0 0 72px" />
-        <button class="btn small" id="waterAddBtn">Add</button>
-        <button class="btn secondary small" id="waterUndoBtn">Undo</button>
+      <div class="col-side">
+        ${macroPanel(d)}
+
+        <div class="panel">
+          <div class="panel-head"><h3>Food today</h3><span class="muted">${d.todaysFood.length} entr${d.todaysFood.length === 1 ? "y" : "ies"}</span></div>
+          <ul class="log-list">
+            ${d.todaysFood.length === 0 ? `<li class="muted empty">Nothing logged yet today.</li>` : ""}
+            ${d.todaysFood.map((f) => entryRow("food", f, true)).join("")}
+          </ul>
+          <div class="inline-form">
+            <input id="foodDesc" placeholder="What did you eat?" />
+            <input type="number" id="foodCal" class="cal-input" placeholder="kcal" />
+            <button class="btn" id="logFoodBtn">+</button>
+          </div>
+          <div class="macro-form">
+            <input type="number" id="foodP" placeholder="P" title="Protein (g)" />
+            <input type="number" id="foodC" placeholder="C" title="Carbs (g)" />
+            <input type="number" id="foodF" placeholder="F" title="Fat (g)" />
+            <span class="muted">macros optional · kcal auto-fills from macros</span>
+          </div>
+          ${d.favorites.length ? `<div class="muted" style="margin-top:12px">Quick add:</div>
+          <div class="chips" id="favChips">
+            ${d.favorites.map((f, i) => `<span class="chip" data-fav="${i}">${escapeHtml(f.description.length > 26 ? f.description.slice(0, 25) + "…" : f.description)}<span class="chip-cal">${f.calories}</span></span>`).join("")}
+          </div>` : ""}
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Activity today</h3><span class="muted">${d.todaysBurn.length} entr${d.todaysBurn.length === 1 ? "y" : "ies"}</span></div>
+          <ul class="log-list">
+            ${d.todaysBurn.length === 0 ? `<li class="muted empty">No activity logged yet today.</li>` : ""}
+            ${d.todaysBurn.map((b) => entryRow("burn", b, false)).join("")}
+          </ul>
+          <div class="inline-form">
+            <input id="burnDesc" placeholder="Run, hike, home workout…" />
+            <input type="number" id="burnCal" class="cal-input" placeholder="kcal" />
+            <button class="btn" id="logBurnBtn">+</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Water today</h3><span class="muted">goal ${d.waterGoal} ml</span></div>
+          <div class="water-big">${d.waterToday}<span class="unit">/ ${d.waterGoal} ml</span></div>
+          <div class="track" style="margin-top:10px"><div class="fill" style="width:${waterPct}%;background:var(--teal)"></div></div>
+          <div class="water-btns">
+            <button class="btn secondary small" data-water="250">+250 ml</button>
+            <button class="btn secondary small" data-water="500">+500 ml</button>
+            <input type="number" id="waterCustom" class="cal-input" placeholder="ml" style="flex:0 0 72px" />
+            <button class="btn small" id="waterAddBtn">Add</button>
+            <button class="btn secondary small" id="waterUndoBtn">Undo</button>
+          </div>
+        </div>
       </div>
     </div>
 
