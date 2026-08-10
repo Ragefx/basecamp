@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#EEEFE9" />
 <title>Basecamp</title>
 <link rel="icon" href="data:,">
 <style>
@@ -10,56 +11,135 @@
 
   :root {
     --bg: #EEEFE9; --bg-elevated: #FFFFFF; --ink: #1F2421; --ink-soft: #62695F;
-    --moss: #3F6B4A; --moss-deep: #2C4E35; --rust: #B9552C; --teal: #2C6E63; --line: #DBDCD3;
+    --moss: #3F6B4A; --moss-deep: #2C4E35; --rust: #B9552C; --teal: #2C6E63;
+    --gold: #B58A1B; --line: #DBDCD3; --track: #E6E7DF; --shadow: 0 1px 2px rgba(31,36,33,0.04), 0 8px 24px rgba(31,36,33,0.05);
     --font-display: 'Fraunces', Georgia, serif;
     --font-body: 'Inter', -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
   }
+  :root[data-theme="dark"] {
+    --bg: #12140F; --bg-elevated: #1B1E17; --ink: #EBEDE3; --ink-soft: #9AA091;
+    --moss: #7CB489; --moss-deep: #A6D3AF; --rust: #E58256; --teal: #57A99A;
+    --gold: #D8B34A; --line: #2C3128; --track: #262A22; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.35);
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); font-family: var(--font-body); color: var(--ink); }
-  .basecamp { padding: 24px; max-width: 720px; margin: 0 auto; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); font-family: var(--font-body); color: var(--ink); transition: background .2s ease, color .2s ease; }
+  .basecamp { padding: 24px 20px 60px; max-width: 720px; margin: 0 auto; }
   h1, h2, h3 { font-family: var(--font-display); margin: 0; }
   .muted { color: var(--ink-soft); font-size: 12.5px; }
-  .panel { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
-  .panel-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .mono { font-family: var(--font-mono); }
+
+  /* Header */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand h1 { font-size: 23px; font-weight: 600; letter-spacing: -0.01em; }
+  .topbar-actions { display: flex; align-items: center; gap: 6px; }
+  .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg-elevated); color: var(--ink); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; }
+  .icon-btn:hover { border-color: var(--moss); }
+
+  /* Panels & cards */
+  .panel { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-top: 16px; box-shadow: var(--shadow); }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
   .panel-head h3 { font-size: 16px; font-weight: 600; }
-  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 18px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
   @media (max-width: 560px) { .grid { grid-template-columns: repeat(2, 1fr); } }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
-  .stat-card { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .stat-card { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
   .stat-card .icon-row { display: flex; align-items: center; gap: 6px; color: var(--moss); margin-bottom: 8px; font-size: 15px; }
   .stat-card .label { font-size: 11.5px; color: var(--ink-soft); }
   .stat-card .value { font-family: var(--font-mono); font-size: 22px; font-weight: 500; }
   .stat-card .value .unit { font-size: 11px; color: var(--ink-soft); margin-left: 4px; }
   .stat-card.warn .value { color: var(--rust); }
-  .log-list { list-style: none; margin: 0; padding: 0; max-height: 200px; overflow-y: auto; }
-  .log-list li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .stat-card.good .value { color: var(--moss); }
+
+  /* Macro bars */
+  .macro { margin-top: 12px; }
+  .macro:first-child { margin-top: 4px; }
+  .macro-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; margin-bottom: 5px; }
+  .macro-top .name { font-weight: 500; }
+  .macro-top .amt { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft); }
+  .track { height: 9px; background: var(--track); border-radius: 6px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 6px; transition: width .35s ease; }
+
+  /* Logs */
+  .log-list { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow-y: auto; }
+  .log-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
   .log-list li:last-child { border-bottom: none; }
+  .log-list .entry-main { flex: 1; min-width: 0; cursor: pointer; }
+  .log-list .entry-desc { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-list .entry-macros { font-size: 10.5px; color: var(--ink-soft); font-family: var(--font-mono); margin-top: 1px; }
   .log-list .cal { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+  .log-list .del { border: none; background: none; color: var(--ink-soft); cursor: pointer; font-size: 15px; padding: 0 2px; line-height: 1; opacity: .55; }
+  .log-list .del:hover { opacity: 1; color: var(--rust); }
   .log-list .empty { border: none; padding: 10px 0; }
-  .inline-form { display: flex; gap: 6px; margin-top: 10px; }
-  .inline-form input { flex: 1; min-width: 0; font-family: var(--font-body); font-size: 13px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
-  .inline-form input:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
-  .inline-form .cal-input { flex: 0 0 72px; }
-  .btn { display: inline-flex; align-items: center; gap: 4px; justify-content: center; background: var(--moss); color: white; border: none; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+
+  /* Forms */
+  .inline-form { display: flex; gap: 6px; margin-top: 12px; }
+  .inline-form input, .macro-form input, .modal input, .modal select { font-family: var(--font-body); font-size: 13px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); color: var(--ink); }
+  .inline-form input { flex: 1; min-width: 0; }
+  .inline-form input:focus, .macro-form input:focus, .modal input:focus, .modal select:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
+  .inline-form .cal-input { flex: 0 0 68px; }
+  .macro-form { display: flex; gap: 6px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+  .macro-form input { width: 62px; }
+  .btn { display: inline-flex; align-items: center; gap: 4px; justify-content: center; background: var(--moss); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
   .btn:hover { background: var(--moss-deep); }
+  :root[data-theme="dark"] .btn:not(.secondary):not(.danger) { color: #12140F; }
   .btn.secondary { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
-  .btn.secondary:hover { background: var(--line); }
+  .btn.secondary:hover { background: var(--track); }
+  .btn.danger { background: var(--rust); color: #fff; }
+  .btn.small { padding: 6px 9px; font-size: 12px; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; font-size: 12.5px; cursor: pointer; color: var(--ink); }
+  .chip:hover { border-color: var(--moss); }
+  .chip .chip-cal { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+
+  /* Water */
+  .water-big { font-family: var(--font-mono); font-size: 26px; font-weight: 500; }
+  .water-big .unit { font-size: 12px; color: var(--ink-soft); margin-left: 4px; }
+  .water-btns { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* Weekly table */
+  .wtable { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+  .wtable th { text-align: right; font-weight: 500; color: var(--ink-soft); font-size: 11px; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  .wtable th:first-child { text-align: left; }
+  .wtable td { text-align: right; padding: 6px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-size: 12px; }
+  .wtable td:first-child { text-align: left; font-family: var(--font-body); }
+  .wtable tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-family: var(--font-mono); }
+  .pill.under { background: rgba(63,107,74,0.14); color: var(--moss); }
+  .pill.over { background: rgba(185,85,44,0.14); color: var(--rust); }
+
+  /* Notes / sync */
   .note { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px; font-size: 12.5px; color: var(--ink-soft); padding: 12px 14px; background: rgba(63,107,74,0.06); border-radius: 10px; border: 1px solid var(--line); }
   .warn-note { background: rgba(185,85,44,0.07); }
-  .sync-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .sync-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
   .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
   .sync-dot.ok { background: var(--moss); }
-  .sync-dot.syncing { background: #C9A227; animation: pulse 1s infinite ease-in-out; }
+  .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite ease-in-out; }
   .sync-dot.err { background: var(--rust); }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
   svg text { font-family: var(--font-body); }
   .bar { cursor: pointer; }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(20,22,17,0.45); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .modal { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; box-shadow: var(--shadow); }
+  .modal h3 { font-size: 17px; margin-bottom: 14px; }
+  .modal .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .modal .field label { font-size: 11.5px; color: var(--ink-soft); }
+  .modal .field input, .modal .field select { width: 100%; }
+  .modal .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .modal .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modal-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 </style>
 </head>
 <body>
 <div class="basecamp" id="app"></div>
+<div id="modalRoot"></div>
 
 <script>
 /* ============================================================
@@ -67,18 +147,20 @@
    Dropbox/local data yet. After that, Dropbox is the source of
    truth and Claude edits it directly via chat, or you edit it
    here in the app.
+   Food entries may optionally carry protein/carbs/fat (grams).
    ============================================================ */
 const SEED = {
   profile: {
     heightCm: 174, age: 35, startWeight: 85, goalWeight: 75,
-    activity: "light", pace: 0.5
+    activity: "light", pace: 0.5,
+    proteinPerKg: 1.8, fatPct: 0.28, waterGoalMl: 2500
   },
   weightLog: [
     { id: "w1", date: "2026-07-30", weight: 85 }
   ],
   foodLog: [
-    { id: "f1", date: "2026-07-30", description: "2 Bernerwürstel (S-Budget), 38g fat / 25g protein / 3.3g salt", calories: 450 },
-    { id: "f2", date: "2026-07-30", description: "2.5 Žemlje za dopeko (S-Budget bake-off rolls, 125g, 249kcal/100g label)", calories: 311 },
+    { id: "f1", date: "2026-07-30", description: "2 Bernerwürstel (S-Budget), 38g fat / 25g protein / 3.3g salt", calories: 450, protein: 25, carbs: 2, fat: 38 },
+    { id: "f2", date: "2026-07-30", description: "2.5 Žemlje za dopeko (S-Budget bake-off rolls, 125g, 249kcal/100g label)", calories: 311, protein: 10, carbs: 60, fat: 3 },
     { id: "f3", date: "2026-07-30", description: "1 tbsp mayonnaise (~14g, 715kcal/100g label)", calories: 100 },
     { id: "f4", date: "2026-07-30", description: "1 tbsp mustard (~15g, 117kcal/100g label)", calories: 18 },
     { id: "f5", date: "2026-07-30", description: "5 pickles (~175g est., 14kcal/100g label)", calories: 25 },
@@ -106,7 +188,7 @@ const SEED = {
     { id: "f27", date: "2026-08-04", description: "Aloe vera juice", calories: 175 },
     { id: "f28", date: "2026-08-05", description: "Chorizo baguette, Pierre Baguette brand, 200g", calories: 592 },
     { id: "f29", date: "2026-08-05", description: "Monster The Doctor 500ml", calories: 220 },
-    { id: "f30", date: "2026-08-05", description: "Airfryer chicken, ~200g", calories: 360 },
+    { id: "f30", date: "2026-08-05", description: "Airfryer chicken, ~200g", calories: 360, protein: 54, carbs: 0, fat: 16 },
     { id: "f31", date: "2026-08-05", description: "Large shopska salad", calories: 400 },
     { id: "f32", date: "2026-08-04", description: "1 piece blueberry cake", calories: 350 },
     { id: "f33", date: "2026-08-06", description: "2 large žemlje/rolls", calories: 480 },
@@ -136,7 +218,8 @@ const SEED = {
   ],
   burnLog: [
     { id: "b1", date: "2026-08-09", description: "4hr geocaching hike incl. steep 240m climb (net extra above baseline)", calories: 1150 }
-  ]
+  ],
+  waterLog: []
 };
 
 /* ============================================================
@@ -267,15 +350,31 @@ async function dbxUploadJson(path, obj) {
 /* ============================================================
    STATE
    ============================================================ */
+const PROFILE_DEFAULTS = {
+  heightCm: 174, age: 35, startWeight: 85, goalWeight: 75,
+  activity: "light", pace: 0.5, proteinPerKg: 1.8, fatPct: 0.28, waterGoalMl: 2500
+};
+
+function normalize(data) {
+  data = data || {};
+  data.profile = Object.assign({}, PROFILE_DEFAULTS, data.profile || {});
+  data.weightLog = Array.isArray(data.weightLog) ? data.weightLog : [];
+  data.foodLog = Array.isArray(data.foodLog) ? data.foodLog : [];
+  data.burnLog = Array.isArray(data.burnLog) ? data.burnLog : [];
+  data.waterLog = Array.isArray(data.waterLog) ? data.waterLog : [];
+  return data;
+}
+
 const State = {
-  data: null, // { profile, weightLog, foodLog, burnLog }
+  data: null, // { profile, weightLog, foodLog, burnLog, waterLog }
   selectedDay: null,
   syncStatus: "idle", // idle | syncing | ok | err | offline
   saveTimer: null,
+  derived: null,
 
   load() {
     const cached = localStorage.getItem("basecamp_cache");
-    this.data = cached ? JSON.parse(cached) : JSON.parse(JSON.stringify(SEED));
+    this.data = normalize(cached ? JSON.parse(cached) : JSON.parse(JSON.stringify(SEED)));
   },
   cacheLocally() {
     localStorage.setItem("basecamp_cache", JSON.stringify(this.data));
@@ -301,9 +400,35 @@ const State = {
   },
 };
 
+/* ============================================================
+   THEME
+   ============================================================ */
+const Theme = {
+  get() {
+    return localStorage.getItem("basecamp_theme") ||
+      (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  },
+  apply() {
+    const t = this.get();
+    document.documentElement.setAttribute("data-theme", t);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", t === "dark" ? "#12140F" : "#EEEFE9");
+  },
+  toggle() {
+    localStorage.setItem("basecamp_theme", this.get() === "dark" ? "light" : "dark");
+    this.apply();
+    render();
+  },
+};
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const uid = () => Math.random().toString(36).slice(2, 10);
 const fmt = (n, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toLocaleString();
+const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const numOrNull = (v) => { if (v === "" || v == null) return null; const n = parseFloat(v); return isNaN(n) ? null : n; };
 
 function bmr({ weight, heightCm, age }) {
   return 10 * weight + 6.25 * heightCm - 5 * age + 5;
@@ -315,19 +440,62 @@ const ACTIVITY = {
   active: { label: "Very active (6-7 sessions/week)", mult: 1.725 },
 };
 
+function linreg(points) {
+  const n = points.length;
+  if (n < 2) return null;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const p of points) { sx += p.x; sy += p.y; sxx += p.x * p.x; sxy += p.x * p.y; }
+  const denom = n * sxx - sx * sx;
+  if (denom === 0) return null;
+  const slope = (n * sxy - sx * sy) / denom;
+  const intercept = (sy - slope * sx) / n;
+  return { slope, intercept };
+}
+
+function daysBetween(a, b) {
+  return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function mondayOf(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  const dow = (d.getDay() + 6) % 7; // Mon=0
+  d.setDate(d.getDate() - dow);
+  return d.toISOString().slice(0, 10);
+}
+function prettyDate(dateStr) {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
 /* ============================================================
-   RENDER
+   DERIVED
    ============================================================ */
+function macroTotals(entries) {
+  let protein = 0, carbs = 0, fat = 0, withMacros = 0;
+  for (const f of entries) {
+    if (f.protein != null || f.carbs != null || f.fat != null) withMacros++;
+    protein += num(f.protein); carbs += num(f.carbs); fat += num(f.fat);
+  }
+  return { protein, carbs, fat, withMacros, total: entries.length };
+}
+
 function computeDerived() {
-  const { profile, weightLog, foodLog, burnLog } = State.data;
-  const currentWeight = weightLog.length
-    ? [...weightLog].sort((a, b) => a.date.localeCompare(b.date)).slice(-1)[0].weight
-    : profile.startWeight;
+  const { profile, weightLog, foodLog, burnLog, waterLog } = State.data;
+  const sortedW = [...weightLog].sort((a, b) => a.date.localeCompare(b.date));
+  const currentWeight = sortedW.length ? sortedW[sortedW.length - 1].weight : profile.startWeight;
 
   const b = bmr({ weight: currentWeight, heightCm: profile.heightCm, age: profile.age });
   const tdee = b * ACTIVITY[profile.activity].mult;
   const weeklyDeficit = profile.pace * 7700;
   const target = Math.max(Math.round(tdee - weeklyDeficit / 7), 1200);
+
+  // Macro targets
+  const proteinTarget = Math.round(profile.proteinPerKg * currentWeight);
+  const fatTarget = Math.round((target * profile.fatPct) / 9);
+  const carbsTarget = Math.max(0, Math.round((target - proteinTarget * 4 - fatTarget * 9) / 4));
 
   const startWeight = profile.startWeight, goalWeight = profile.goalWeight;
   let progressPct = startWeight === goalWeight ? 100 : ((startWeight - currentWeight) / (startWeight - goalWeight)) * 100;
@@ -335,34 +503,107 @@ function computeDerived() {
 
   const today = todayStr();
   const todaysFood = foodLog.filter((f) => f.date === today);
-  const todaysBurn = burnLog.filter((b2) => b2.date === today);
-  const consumed = todaysFood.reduce((s, f) => s + Number(f.calories), 0);
-  const burned = todaysBurn.reduce((s, b2) => s + Number(b2.calories), 0);
+  const todaysBurn = burnLog.filter((x) => x.date === today);
+  const consumed = todaysFood.reduce((s, f) => s + num(f.calories), 0);
+  const burned = todaysBurn.reduce((s, x) => s + num(x.calories), 0);
   const remaining = target - consumed + burned;
+  const todaysMacros = macroTotals(todaysFood);
+  const waterToday = waterLog.filter((w) => w.date === today).reduce((s, w) => s + num(w.ml), 0);
 
-  const chartData = [...weightLog].sort((a, b2) => a.date.localeCompare(b2.date)).map((w) => ({ date: w.date.slice(5), weight: w.weight }));
+  // Weight chart + moving average
+  const chartData = sortedW.map((w) => ({ date: w.date, label: w.date.slice(5), weight: w.weight }));
+  const maData = chartData.map((_, i) => {
+    const win = chartData.slice(Math.max(0, i - 6), i + 1);
+    return win.reduce((s, w) => s + w.weight, 0) / win.length;
+  });
 
+  // Projection via linear regression on days
+  let projection = null;
+  if (chartData.length >= 2) {
+    const first = chartData[0].date;
+    const pts = chartData.map((w) => ({ x: daysBetween(first, w.date), y: w.weight }));
+    const reg = linreg(pts);
+    if (reg) {
+      const perWeek = reg.slope * 7;
+      const towardGoal = (goalWeight < currentWeight && reg.slope < -0.0005) || (goalWeight > currentWeight && reg.slope > 0.0005);
+      let etaDate = null, etaDays = null;
+      if (towardGoal) {
+        etaDays = (goalWeight - currentWeight) / reg.slope;
+        if (etaDays > 0 && etaDays < 3650) etaDate = addDays(today, Math.round(etaDays));
+      }
+      projection = { perWeek, towardGoal, etaDate, etaDays, slope: reg.slope };
+    }
+  }
+
+  // Per-day totals
   const byDate = {};
-  for (const f of foodLog) { byDate[f.date] = byDate[f.date] || { food: 0, burn: 0 }; byDate[f.date].food += Number(f.calories); }
-  for (const bb of burnLog) { byDate[bb.date] = byDate[bb.date] || { food: 0, burn: 0 }; byDate[bb.date].burn += Number(bb.calories); }
+  for (const f of foodLog) { byDate[f.date] = byDate[f.date] || { food: 0, burn: 0 }; byDate[f.date].food += num(f.calories); }
+  for (const bb of burnLog) { byDate[bb.date] = byDate[bb.date] || { food: 0, burn: 0 }; byDate[bb.date].burn += num(bb.calories); }
   const dailyActivityData = Object.entries(byDate).sort(([a], [c]) => a.localeCompare(c)).map(([date, v]) => ({
     date, label: date.slice(5), food: Math.round(v.food), burnNeg: -Math.round(v.burn), net: Math.round(v.food - v.burn),
   }));
 
+  // Streak: consecutive days (ending at most recent logged day) with net <= target
+  const foodDays = [...new Set(foodLog.map((f) => f.date))].sort();
+  let streak = 0;
+  if (foodDays.length) {
+    let cursor = foodDays[foodDays.length - 1];
+    while (byDate[cursor]) {
+      const net = (byDate[cursor].food || 0) - (byDate[cursor].burn || 0);
+      if (net <= target) { streak++; cursor = addDays(cursor, -1); } else break;
+    }
+  }
+
+  // Weekly summary
+  const weekMap = {};
+  for (const [date, v] of Object.entries(byDate)) {
+    const wk = mondayOf(date);
+    weekMap[wk] = weekMap[wk] || { food: 0, burn: 0, days: 0 };
+    weekMap[wk].food += v.food; weekMap[wk].burn += v.burn; weekMap[wk].days++;
+  }
+  const weeks = Object.entries(weekMap).sort(([a], [c]) => c.localeCompare(a)).slice(0, 5).map(([wk, v]) => {
+    const avgIn = v.food / v.days;
+    const avgNet = (v.food - v.burn) / v.days;
+    const deficitKcal = target * v.days - (v.food - v.burn);
+    return { wk, label: prettyDate(wk).replace(/, \d+$/, ""), days: v.days, avgIn, avgNet, vsTarget: avgNet - target, kgChange: -deficitKcal / 7700 };
+  });
+
+  // Favorites: most frequently logged foods (representative = most recent occurrence)
+  const favMap = {};
+  for (const f of foodLog) {
+    const key = f.description.trim().toLowerCase();
+    if (!favMap[key]) favMap[key] = { count: 0, last: f };
+    favMap[key].count++;
+    favMap[key].last = f; // foodLog is roughly chronological; last wins
+  }
+  const favorites = Object.values(favMap)
+    .filter((x) => x.count >= 2)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
+    .map((x) => x.last);
+
+  // Active day detail
   const activeDay = State.selectedDay || today;
   const activeDayFood = foodLog.filter((f) => f.date === activeDay);
-  const activeDayBurn = burnLog.filter((b2) => b2.date === activeDay);
-  const activeDayFoodTotal = activeDayFood.reduce((s, f) => s + Number(f.calories), 0);
-  const activeDayBurnTotal = activeDayBurn.reduce((s, b2) => s + Number(b2.calories), 0);
+  const activeDayBurn = burnLog.filter((x) => x.date === activeDay);
+  const activeDayFoodTotal = activeDayFood.reduce((s, f) => s + num(f.calories), 0);
+  const activeDayBurnTotal = activeDayBurn.reduce((s, x) => s + num(x.calories), 0);
+  const activeDayMacros = macroTotals(activeDayFood);
 
   return {
-    currentWeight, targets: { bmr: Math.round(b), tdee: Math.round(tdee), target },
-    progressPct, today, todaysFood, todaysBurn, consumed, burned, remaining,
-    chartData, dailyActivityData, activeDay, activeDayFood, activeDayBurn,
-    activeDayFoodTotal, activeDayBurnTotal, activeDayNet: activeDayFoodTotal - activeDayBurnTotal,
+    currentWeight, targets: { bmr: Math.round(b), tdee: Math.round(tdee), target, proteinTarget, fatTarget, carbsTarget },
+    progressPct, today, todaysFood, todaysBurn, consumed, burned, remaining, todaysMacros,
+    waterToday, waterGoal: profile.waterGoalMl,
+    chartData, maData, projection, dailyActivityData, streak, weeks, favorites,
+    activeDay, activeDayFood, activeDayBurn, activeDayFoodTotal, activeDayBurnTotal,
+    activeDayNet: activeDayFoodTotal - activeDayBurnTotal, activeDayMacros,
+    recentWeights: sortedW.slice(-6).reverse(),
   };
 }
 
+/* ============================================================
+   SVG COMPONENTS
+   ============================================================ */
 function svgTrailHero(profile, currentWeight, progressPct) {
   const pathD = "M10,110 C 90,105 140,60 200,70 C 260,80 300,40 360,45 C 430,50 470,20 520,18 C 560,17 590,15 610,14";
   const xs = [10, 90, 140, 200, 260, 300, 360, 430, 470, 520, 560, 590, 610];
@@ -375,7 +616,7 @@ function svgTrailHero(profile, currentWeight, progressPct) {
   const remainingKg = Math.max(0, currentWeight - profile.goalWeight);
 
   return `
-  <div class="panel" style="padding-bottom:10px">
+  <div class="panel" style="padding-bottom:12px">
     <svg viewBox="0 0 640 150" width="100%" height="150" style="display:block">
       <defs>
         <linearGradient id="trailFade" x1="0" y1="0" x2="1" y2="0">
@@ -396,13 +637,13 @@ function svgTrailHero(profile, currentWeight, progressPct) {
       <circle cx="${mx}" cy="${my}" r="3" fill="var(--moss)" />
     </svg>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px">
-      <span style="font-family:var(--font-mono);font-size:13px;color:var(--ink-soft)">${fmt(progressPct, 0)}% of the way up</span>
-      <span style="font-family:var(--font-mono);font-size:13px;color:var(--ink-soft)">${remainingKg > 0 ? fmt(remainingKg) + " kg to summit" : "Summit reached 🏔️"}</span>
+      <span class="mono" style="font-size:13px;color:var(--ink-soft)">${fmt(progressPct, 0)}% of the way up</span>
+      <span class="mono" style="font-size:13px;color:var(--ink-soft)">${remainingKg > 0 ? fmt(remainingKg) + " kg to summit" : "Summit reached 🏔️"}</span>
     </div>
   </div>`;
 }
 
-function svgWeightChart(chartData, goalWeight) {
+function svgWeightChart(chartData, maData, goalWeight) {
   if (chartData.length <= 1) {
     return `<p class="muted" style="padding:20px 0">Log your weight a couple of times to see the trend line.</p>`;
   }
@@ -412,35 +653,43 @@ function svgWeightChart(chartData, goalWeight) {
   const x = (i) => padL + (i / (chartData.length - 1)) * (W - padL - padR);
   const y = (w) => padT + (1 - (w - minW) / (maxW - minW)) * (H - padT - padB);
   const points = chartData.map((d, i) => `${x(i)},${y(d.weight)}`).join(" ");
+  const maPoints = maData.map((w, i) => `${x(i)},${y(w)}`).join(" ");
   const goalY = y(goalWeight);
   const dots = chartData.map((d, i) => `<circle cx="${x(i)}" cy="${y(d.weight)}" r="3" fill="var(--teal)"><title>${d.date}: ${d.weight}kg</title></circle>`).join("");
-  const labels = chartData.map((d, i) => `<text x="${x(i)}" y="${H - 6}" font-size="10" fill="var(--ink-soft)" text-anchor="middle">${d.date}</text>`).join("");
+  const step = Math.ceil(chartData.length / 8);
+  const labels = chartData.map((d, i) => (i % step === 0 || i === chartData.length - 1)
+    ? `<text x="${x(i)}" y="${H - 6}" font-size="10" fill="var(--ink-soft)" text-anchor="middle">${d.label}</text>` : "").join("");
   return `
   <svg viewBox="0 0 ${W} ${H}" width="100%" height="200" style="display:block">
     <line x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}" stroke="var(--rust)" stroke-dasharray="4 4" />
     <text x="${W - padR}" y="${goalY - 4}" font-size="10" fill="var(--rust)" text-anchor="end">goal</text>
+    <polyline points="${maPoints}" fill="none" stroke="var(--moss)" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.7" />
     <polyline points="${points}" fill="none" stroke="var(--teal)" stroke-width="2.5" />
     ${dots}
     ${labels}
-  </svg>`;
+  </svg>
+  <div class="muted" style="display:flex;gap:14px;margin-top:2px">
+    <span><span style="color:var(--teal)">━</span> weigh-ins</span>
+    <span><span style="color:var(--moss)">┄</span> 7-pt average</span>
+  </div>`;
 }
 
 function svgActivityChart(dailyActivityData, target, activeDay) {
   if (dailyActivityData.length === 0) {
     return `<p class="muted" style="padding:20px 0">Log some food or activity to see your daily totals.</p>`;
   }
+  const data = dailyActivityData.slice(-21);
   const W = 680, H = 220, padL = 40, padR = 12, padT = 10, padB = 22;
-  const maxFood = Math.max(...dailyActivityData.map((d) => d.food), target);
-  const maxBurn = Math.max(...dailyActivityData.map((d) => Math.abs(d.burnNeg)), 1);
+  const maxFood = Math.max(...data.map((d) => d.food), target);
+  const maxBurn = Math.max(...data.map((d) => Math.abs(d.burnNeg)), 1);
   const zeroY = padT + (maxFood / (maxFood + maxBurn)) * (H - padT - padB);
   const scale = (H - padT - padB) / (maxFood + maxBurn);
-  const bw = ((W - padL - padR) / dailyActivityData.length) * 0.6;
-  const gap = ((W - padL - padR) / dailyActivityData.length);
-
+  const bw = ((W - padL - padR) / data.length) * 0.6;
+  const gap = ((W - padL - padR) / data.length);
   const targetY = zeroY - target * scale;
 
   let bars = "";
-  dailyActivityData.forEach((d, i) => {
+  data.forEach((d, i) => {
     const cx = padL + gap * i + gap / 2;
     const bx = cx - bw / 2;
     const foodH = d.food * scale;
@@ -448,8 +697,9 @@ function svgActivityChart(dailyActivityData, target, activeDay) {
     const selected = d.date === activeDay;
     const stroke = selected ? `stroke="var(--ink)" stroke-width="2"` : "";
     bars += `<rect class="bar" data-date="${d.date}" x="${bx}" y="${zeroY - foodH}" width="${bw}" height="${foodH}" rx="4" fill="var(--rust)" ${stroke}><title>${d.date}: +${d.food} kcal food</title></rect>`;
-    bars += `<rect class="bar" data-date="${d.date}" x="${bx}" y="${zeroY}" width="${bw}" height="${burnH}" rx="4" fill="var(--moss)" ${stroke}><title>${d.date}: -${Math.abs(d.burnNeg)} kcal activity</title></rect>`;
-    bars += `<text x="${cx}" y="${H - 6}" font-size="10" fill="var(--ink-soft)" text-anchor="middle">${d.label}</text>`;
+    if (burnH > 0) bars += `<rect class="bar" data-date="${d.date}" x="${bx}" y="${zeroY}" width="${bw}" height="${burnH}" rx="4" fill="var(--moss)" ${stroke}><title>${d.date}: -${Math.abs(d.burnNeg)} kcal activity</title></rect>`;
+    const showLabel = data.length <= 12 || i % Math.ceil(data.length / 12) === 0;
+    if (showLabel) bars += `<text x="${cx}" y="${H - 6}" font-size="10" fill="var(--ink-soft)" text-anchor="middle">${d.label}</text>`;
   });
 
   return `
@@ -459,6 +709,58 @@ function svgActivityChart(dailyActivityData, target, activeDay) {
     <text x="${W - padR}" y="${targetY - 4}" font-size="10" fill="var(--rust)" text-anchor="end">target</text>
     ${bars}
   </svg>`;
+}
+
+/* ============================================================
+   HTML COMPONENTS
+   ============================================================ */
+function macroBar(name, colorVar, consumed, target) {
+  const pct = target > 0 ? Math.min(100, (consumed / target) * 100) : 0;
+  const over = consumed > target * 1.05;
+  return `
+  <div class="macro">
+    <div class="macro-top"><span class="name">${name}</span><span class="amt">${Math.round(consumed)} / ${target} g</span></div>
+    <div class="track"><div class="fill" style="width:${pct}%;background:${over ? 'var(--rust)' : colorVar}"></div></div>
+  </div>`;
+}
+
+function macroPanel(d) {
+  const m = d.todaysMacros, t = d.targets;
+  const missing = m.total - m.withMacros;
+  return `
+  <div class="panel">
+    <div class="panel-head"><h3>Macros today</h3><span class="muted">${m.total ? m.total + ' item' + (m.total === 1 ? '' : 's') : 'none yet'}</span></div>
+    ${macroBar("Protein", "var(--teal)", m.protein, t.proteinTarget)}
+    ${macroBar("Carbs", "var(--gold)", m.carbs, t.carbsTarget)}
+    ${macroBar("Fat", "var(--rust)", m.fat, t.fatTarget)}
+    ${missing > 0 ? `<div class="muted" style="margin-top:10px">${missing} of today's ${m.total} item${m.total === 1 ? '' : 's'} logged without macros — totals above may be low.</div>` : ''}
+  </div>`;
+}
+
+function projectionText(d) {
+  const p = d.projection;
+  if (!p) return `<span class="muted">Log a few more weigh-ins to project your goal date.</span>`;
+  const dir = p.perWeek < 0 ? "losing" : p.perWeek > 0 ? "gaining" : "holding";
+  const rate = `${p.perWeek >= 0 ? "+" : ""}${fmt(p.perWeek, 2)} kg/wk`;
+  if (p.etaDate) {
+    return `Trend: <strong>${rate}</strong> (${dir}). At this pace you'll reach <strong>${fmt(State.data.profile.goalWeight)} kg</strong> around <strong>${prettyDate(p.etaDate)}</strong>.`;
+  }
+  return `Trend: <strong>${rate}</strong> (${dir}). Not currently trending toward your goal.`;
+}
+
+function entryRow(type, e, showMacros) {
+  const macroStr = (e.protein != null || e.carbs != null || e.fat != null)
+    ? `<span class="entry-macros">P ${Math.round(num(e.protein))} · C ${Math.round(num(e.carbs))} · F ${Math.round(num(e.fat))}</span>` : "";
+  const calColor = type === "burn" ? "var(--moss)" : "var(--rust)";
+  const sign = type === "burn" ? "-" : "+";
+  return `<li>
+    <span class="entry-main" data-edit="${type}" data-id="${e.id}">
+      <span class="entry-desc">${escapeHtml(e.description)}</span>
+      ${showMacros ? macroStr : ""}
+    </span>
+    <span class="cal" style="color:${calColor}">${sign}${e.calories} kcal</span>
+    <button class="del" data-del="${type}" data-id="${e.id}" title="Delete">×</button>
+  </li>`;
 }
 
 function renderSyncRow() {
@@ -475,37 +777,57 @@ function renderSyncRow() {
   el.innerHTML = `<span class="${dotClass}"></span><span>${label}</span>`;
 }
 
+/* ============================================================
+   RENDER
+   ============================================================ */
 function render() {
   const d = computeDerived();
+  State.derived = d;
   const { profile } = State.data;
   const app = document.getElementById("app");
+  const waterPct = Math.min(100, d.waterGoal > 0 ? (d.waterToday / d.waterGoal) * 100 : 0);
 
   app.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar">
+      <div class="brand">
         <span style="font-size:20px">🏔️</span>
-        <h1 style="font-size:22px;font-weight:600;letter-spacing:-0.01em">Basecamp</h1>
+        <h1>Basecamp</h1>
       </div>
-      <button class="btn secondary" id="dbxBtn" style="font-size:12px">${DbxAuth.isConnected() ? "Disconnect Dropbox" : "Connect Dropbox"}</button>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle dark mode">${Theme.get() === "dark" ? "☀️" : "🌙"}</button>
+        <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
+        <button class="btn secondary small" id="dbxBtn">${DbxAuth.isConnected() ? "Disconnect" : "Connect Dropbox"}</button>
+      </div>
     </div>
     <div class="sync-row" id="syncRow"></div>
 
     ${svgTrailHero(profile, d.currentWeight, d.progressPct)}
 
     <div class="grid">
-      <div class="stat-card"><div class="icon-row">🔥 <span class="label">Target intake today</span></div><div class="value">${d.targets.target}<span class="unit">kcal</span></div></div>
+      <div class="stat-card"><div class="icon-row">🔥 <span class="label">Target intake</span></div><div class="value">${d.targets.target}<span class="unit">kcal</span></div></div>
       <div class="stat-card"><div class="icon-row">🍽️ <span class="label">Consumed today</span></div><div class="value">${d.consumed}<span class="unit">kcal</span></div></div>
       <div class="stat-card"><div class="icon-row">👣 <span class="label">Burned today</span></div><div class="value">${d.burned}<span class="unit">kcal</span></div></div>
-      <div class="stat-card${d.remaining < 0 ? " warn" : ""}"><div class="icon-row">⚖️ <span class="label">Remaining budget</span></div><div class="value">${d.remaining}<span class="unit">kcal</span></div></div>
+      <div class="stat-card${d.remaining < 0 ? " warn" : " good"}"><div class="icon-row">⚖️ <span class="label">Remaining</span></div><div class="value">${d.remaining}<span class="unit">kcal</span></div></div>
     </div>
+
+    ${macroPanel(d)}
 
     <div class="panel">
       <div class="panel-head"><h3>Weight trend</h3><span class="muted">${fmt(d.currentWeight)} kg current · ${fmt(profile.goalWeight)} kg goal</span></div>
-      ${svgWeightChart(d.chartData, profile.goalWeight)}
+      ${svgWeightChart(d.chartData, d.maData, profile.goalWeight)}
+      <div class="note" style="margin-top:12px">${projectionText(d)}</div>
       <div class="inline-form">
-        <input type="number" id="wInput" placeholder="Weight today (kg)" />
-        <button class="btn" id="logWeightBtn">+ Log weight</button>
+        <input type="number" step="0.1" id="wInput" placeholder="Weight (kg)" />
+        <input type="date" id="wDate" class="cal-input" style="flex:0 0 140px" value="${d.today}" max="${d.today}" />
+        <button class="btn" id="logWeightBtn">+ Log</button>
       </div>
+      ${d.recentWeights.length ? `<ul class="log-list" style="margin-top:10px">
+        ${d.recentWeights.map((w) => `<li>
+          <span class="entry-main" data-edit="weight" data-id="${w.id}"><span class="entry-desc">${prettyDate(w.date)}</span></span>
+          <span class="cal">${fmt(w.weight)} kg</span>
+          <button class="del" data-del="weight" data-id="${w.id}" title="Delete">×</button>
+        </li>`).join("")}
+      </ul>` : ""}
     </div>
 
     <div class="panel">
@@ -514,11 +836,31 @@ function render() {
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h3>${d.activeDay === d.today ? "Today" : d.activeDay}</h3><span class="muted">${d.activeDayFoodTotal} in · ${d.activeDayBurnTotal} out · ${d.activeDayNet} net</span></div>
+      <div class="panel-head"><h3>Weekly summary</h3><span class="muted">🔥 ${d.streak}-day on-target streak</span></div>
+      ${d.weeks.length ? `<table class="wtable">
+        <thead><tr><th>Week of</th><th>Days</th><th>Avg in</th><th>Avg net</th><th>vs target</th><th>Est. Δ</th></tr></thead>
+        <tbody>
+          ${d.weeks.map((w) => `<tr>
+            <td>${w.label}</td>
+            <td>${w.days}</td>
+            <td>${Math.round(w.avgIn)}</td>
+            <td>${Math.round(w.avgNet)}</td>
+            <td><span class="pill ${w.vsTarget <= 0 ? "under" : "over"}">${w.vsTarget >= 0 ? "+" : ""}${Math.round(w.vsTarget)}</span></td>
+            <td style="color:${w.kgChange <= 0 ? "var(--moss)" : "var(--rust)"}">${w.kgChange >= 0 ? "+" : ""}${fmt(w.kgChange, 2)} kg</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+      <div class="muted" style="margin-top:8px">"Est. Δ" is projected weight change from that week's calorie balance (7700 kcal ≈ 1 kg).</div>`
+      : `<p class="muted" style="padding:12px 0">Log a few days to see weekly averages.</p>`}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>${d.activeDay === d.today ? "Today" : prettyDate(d.activeDay)}</h3><span class="muted">${d.activeDayFoodTotal} in · ${d.activeDayBurnTotal} out · ${d.activeDayNet} net</span></div>
+      ${d.activeDayMacros.total ? `<div class="muted" style="margin-bottom:6px">P ${Math.round(d.activeDayMacros.protein)}g · C ${Math.round(d.activeDayMacros.carbs)}g · F ${Math.round(d.activeDayMacros.fat)}g</div>` : ""}
       <ul class="log-list">
         ${d.activeDayFood.length === 0 && d.activeDayBurn.length === 0 ? `<li class="muted empty">Nothing logged for this day.</li>` : ""}
-        ${d.activeDayFood.map((f) => `<li><span>${escapeHtml(f.description)}</span><span class="cal" style="color:var(--rust)">+${f.calories} kcal</span></li>`).join("")}
-        ${d.activeDayBurn.map((b) => `<li><span>${escapeHtml(b.description)}</span><span class="cal" style="color:var(--moss)">-${b.calories} kcal</span></li>`).join("")}
+        ${d.activeDayFood.map((f) => entryRow("food", f, true)).join("")}
+        ${d.activeDayBurn.map((b) => entryRow("burn", b, false)).join("")}
       </ul>
     </div>
 
@@ -527,25 +869,48 @@ function render() {
         <div class="panel-head"><h3>Food today</h3><span class="muted">${d.todaysFood.length} entr${d.todaysFood.length === 1 ? "y" : "ies"}</span></div>
         <ul class="log-list">
           ${d.todaysFood.length === 0 ? `<li class="muted empty">Nothing logged yet today.</li>` : ""}
-          ${d.todaysFood.map((f) => `<li><span>${escapeHtml(f.description)}</span><span class="cal">${f.calories} kcal</span></li>`).join("")}
+          ${d.todaysFood.map((f) => entryRow("food", f, true)).join("")}
         </ul>
         <div class="inline-form">
           <input id="foodDesc" placeholder="What did you eat?" />
           <input type="number" id="foodCal" class="cal-input" placeholder="kcal" />
           <button class="btn" id="logFoodBtn">+</button>
         </div>
+        <div class="macro-form">
+          <input type="number" id="foodP" placeholder="P" title="Protein (g)" />
+          <input type="number" id="foodC" placeholder="C" title="Carbs (g)" />
+          <input type="number" id="foodF" placeholder="F" title="Fat (g)" />
+          <span class="muted">macros optional · kcal auto-fills from macros</span>
+        </div>
+        ${d.favorites.length ? `<div class="muted" style="margin-top:12px">Quick add:</div>
+        <div class="chips" id="favChips">
+          ${d.favorites.map((f, i) => `<span class="chip" data-fav="${i}">${escapeHtml(f.description.length > 26 ? f.description.slice(0, 25) + "…" : f.description)}<span class="chip-cal">${f.calories}</span></span>`).join("")}
+        </div>` : ""}
       </div>
       <div class="panel">
         <div class="panel-head"><h3>Activity today</h3><span class="muted">${d.todaysBurn.length} entr${d.todaysBurn.length === 1 ? "y" : "ies"}</span></div>
         <ul class="log-list">
           ${d.todaysBurn.length === 0 ? `<li class="muted empty">No activity logged yet today.</li>` : ""}
-          ${d.todaysBurn.map((b) => `<li><span>${escapeHtml(b.description)}</span><span class="cal">${b.calories} kcal</span></li>`).join("")}
+          ${d.todaysBurn.map((b) => entryRow("burn", b, false)).join("")}
         </ul>
         <div class="inline-form">
           <input id="burnDesc" placeholder="Run, hike, home workout…" />
           <input type="number" id="burnCal" class="cal-input" placeholder="kcal" />
           <button class="btn" id="logBurnBtn">+</button>
         </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Water today</h3><span class="muted">goal ${d.waterGoal} ml</span></div>
+      <div class="water-big">${d.waterToday}<span class="unit">/ ${d.waterGoal} ml</span></div>
+      <div class="track" style="margin-top:10px"><div class="fill" style="width:${waterPct}%;background:var(--teal)"></div></div>
+      <div class="water-btns">
+        <button class="btn secondary small" data-water="250">+250 ml</button>
+        <button class="btn secondary small" data-water="500">+500 ml</button>
+        <input type="number" id="waterCustom" class="cal-input" placeholder="ml" style="flex:0 0 72px" />
+        <button class="btn small" id="waterAddBtn">Add</button>
+        <button class="btn secondary small" id="waterUndoBtn">Undo</button>
       </div>
     </div>
 
@@ -564,7 +929,159 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/* ============================================================
+   MODALS (edit / delete / settings)
+   ============================================================ */
+function openModal(html) {
+  const r = document.getElementById("modalRoot");
+  r.innerHTML = `<div class="modal-backdrop" id="mBackdrop"><div class="modal">${html}</div></div>`;
+  document.getElementById("mBackdrop").addEventListener("click", (e) => { if (e.target.id === "mBackdrop") closeModal(); });
+}
+function closeModal() { document.getElementById("modalRoot").innerHTML = ""; }
+
+function findEntry(type, id) {
+  const list = type === "food" ? State.data.foodLog : type === "burn" ? State.data.burnLog : State.data.weightLog;
+  return list.find((x) => x.id === id);
+}
+
+function openEditModal(type, id) {
+  const e = findEntry(type, id);
+  if (!e) return;
+  if (type === "weight") {
+    openModal(`
+      <h3>Edit weigh-in</h3>
+      <div class="field"><label>Date</label><input type="date" id="m_date" value="${e.date}" max="${todayStr()}" /></div>
+      <div class="field"><label>Weight (kg)</label><input type="number" step="0.1" id="m_weight" value="${e.weight}" /></div>
+      <div class="modal-actions">
+        <button class="btn danger small" id="m_del">Delete</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn secondary small" id="m_cancel">Cancel</button>
+          <button class="btn small" id="m_save">Save</button>
+        </div>
+      </div>`);
+    document.getElementById("m_save").onclick = () => {
+      e.date = document.getElementById("m_date").value || e.date;
+      e.weight = num(document.getElementById("m_weight").value) || e.weight;
+      commit();
+    };
+  } else if (type === "food") {
+    openModal(`
+      <h3>Edit food</h3>
+      <div class="field"><label>Description</label><input id="m_desc" value="${escapeHtml(e.description).replace(/"/g, "&quot;")}" /></div>
+      <div class="row2">
+        <div class="field"><label>Calories</label><input type="number" id="m_cal" value="${e.calories}" /></div>
+        <div class="field"><label>Date</label><input type="date" id="m_date" value="${e.date}" max="${todayStr()}" /></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>Protein (g)</label><input type="number" id="m_p" value="${e.protein ?? ""}" /></div>
+        <div class="field"><label>Carbs (g)</label><input type="number" id="m_c" value="${e.carbs ?? ""}" /></div>
+        <div class="field"><label>Fat (g)</label><input type="number" id="m_f" value="${e.fat ?? ""}" /></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn danger small" id="m_del">Delete</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn secondary small" id="m_cancel">Cancel</button>
+          <button class="btn small" id="m_save">Save</button>
+        </div>
+      </div>`);
+    document.getElementById("m_save").onclick = () => {
+      e.description = document.getElementById("m_desc").value.trim() || e.description;
+      e.calories = num(document.getElementById("m_cal").value);
+      e.date = document.getElementById("m_date").value || e.date;
+      e.protein = numOrNull(document.getElementById("m_p").value);
+      e.carbs = numOrNull(document.getElementById("m_c").value);
+      e.fat = numOrNull(document.getElementById("m_f").value);
+      commit();
+    };
+  } else {
+    openModal(`
+      <h3>Edit activity</h3>
+      <div class="field"><label>Description</label><input id="m_desc" value="${escapeHtml(e.description).replace(/"/g, "&quot;")}" /></div>
+      <div class="row2">
+        <div class="field"><label>Calories burned</label><input type="number" id="m_cal" value="${e.calories}" /></div>
+        <div class="field"><label>Date</label><input type="date" id="m_date" value="${e.date}" max="${todayStr()}" /></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn danger small" id="m_del">Delete</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn secondary small" id="m_cancel">Cancel</button>
+          <button class="btn small" id="m_save">Save</button>
+        </div>
+      </div>`);
+    document.getElementById("m_save").onclick = () => {
+      e.description = document.getElementById("m_desc").value.trim() || e.description;
+      e.calories = num(document.getElementById("m_cal").value);
+      e.date = document.getElementById("m_date").value || e.date;
+      commit();
+    };
+  }
+  document.getElementById("m_cancel").onclick = closeModal;
+  document.getElementById("m_del").onclick = () => { deleteEntry(type, id); closeModal(); };
+
+  function commit() { State.scheduleSave(); closeModal(); render(); }
+}
+
+function deleteEntry(type, id) {
+  if (type === "food") State.data.foodLog = State.data.foodLog.filter((x) => x.id !== id);
+  else if (type === "burn") State.data.burnLog = State.data.burnLog.filter((x) => x.id !== id);
+  else State.data.weightLog = State.data.weightLog.filter((x) => x.id !== id);
+  State.scheduleSave();
+  render();
+}
+
+function openSettingsModal() {
+  const p = State.data.profile;
+  const opts = Object.entries(ACTIVITY).map(([k, v]) => `<option value="${k}" ${p.activity === k ? "selected" : ""}>${v.label}</option>`).join("");
+  openModal(`
+    <h3>Settings</h3>
+    <div class="row2">
+      <div class="field"><label>Height (cm)</label><input type="number" id="s_h" value="${p.heightCm}" /></div>
+      <div class="field"><label>Age</label><input type="number" id="s_age" value="${p.age}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Start weight (kg)</label><input type="number" step="0.1" id="s_sw" value="${p.startWeight}" /></div>
+      <div class="field"><label>Goal weight (kg)</label><input type="number" step="0.1" id="s_gw" value="${p.goalWeight}" /></div>
+    </div>
+    <div class="field"><label>Activity level</label><select id="s_act">${opts}</select></div>
+    <div class="row2">
+      <div class="field"><label>Pace (kg/week)</label><input type="number" step="0.1" id="s_pace" value="${p.pace}" /></div>
+      <div class="field"><label>Water goal (ml)</label><input type="number" id="s_water" value="${p.waterGoalMl}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Protein (g/kg)</label><input type="number" step="0.1" id="s_ppk" value="${p.proteinPerKg}" /></div>
+      <div class="field"><label>Fat (% of kcal)</label><input type="number" id="s_fat" value="${Math.round(p.fatPct * 100)}" /></div>
+    </div>
+    <div class="modal-actions">
+      <span></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn secondary small" id="m_cancel">Cancel</button>
+        <button class="btn small" id="m_save">Save</button>
+      </div>
+    </div>`);
+  document.getElementById("m_cancel").onclick = closeModal;
+  document.getElementById("m_save").onclick = () => {
+    p.heightCm = num(document.getElementById("s_h").value) || p.heightCm;
+    p.age = num(document.getElementById("s_age").value) || p.age;
+    p.startWeight = num(document.getElementById("s_sw").value) || p.startWeight;
+    p.goalWeight = num(document.getElementById("s_gw").value) || p.goalWeight;
+    p.activity = document.getElementById("s_act").value;
+    p.pace = num(document.getElementById("s_pace").value);
+    p.waterGoalMl = num(document.getElementById("s_water").value) || p.waterGoalMl;
+    p.proteinPerKg = num(document.getElementById("s_ppk").value) || p.proteinPerKg;
+    p.fatPct = Math.max(0.1, Math.min(0.6, num(document.getElementById("s_fat").value) / 100)) || p.fatPct;
+    State.scheduleSave();
+    closeModal();
+    render();
+  };
+}
+
+/* ============================================================
+   EVENT WIRING
+   ============================================================ */
 function wireEvents() {
+  document.getElementById("themeBtn").onclick = () => Theme.toggle();
+  document.getElementById("settingsBtn").onclick = openSettingsModal;
+
   document.getElementById("dbxBtn").onclick = () => {
     if (DbxAuth.isConnected()) {
       if (confirm("Disconnect Dropbox? Your data stays on this device but won't sync anymore.")) {
@@ -579,18 +1096,24 @@ function wireEvents() {
   document.getElementById("logWeightBtn").onclick = () => {
     const val = parseFloat(document.getElementById("wInput").value);
     if (!val) return;
-    const today = todayStr();
-    State.data.weightLog = State.data.weightLog.filter((w) => w.date !== today);
-    State.data.weightLog.push({ id: uid(), date: today, weight: val });
+    const date = document.getElementById("wDate").value || todayStr();
+    State.data.weightLog = State.data.weightLog.filter((w) => w.date !== date);
+    State.data.weightLog.push({ id: uid(), date, weight: val });
     State.scheduleSave();
     render();
   };
 
   document.getElementById("logFoodBtn").onclick = () => {
     const desc = document.getElementById("foodDesc").value.trim();
-    const val = parseFloat(document.getElementById("foodCal").value);
-    if (!desc || !val) return;
-    State.data.foodLog.push({ id: uid(), date: todayStr(), description: desc, calories: val });
+    const p = numOrNull(document.getElementById("foodP").value);
+    const c = numOrNull(document.getElementById("foodC").value);
+    const f = numOrNull(document.getElementById("foodF").value);
+    let cal = parseFloat(document.getElementById("foodCal").value);
+    if (isNaN(cal) && (p != null || c != null || f != null)) {
+      cal = Math.round(num(p) * 4 + num(c) * 4 + num(f) * 9); // estimate from macros
+    }
+    if (!desc || !cal) return;
+    State.data.foodLog.push({ id: uid(), date: todayStr(), description: desc, calories: cal, protein: p, carbs: c, fat: f });
     State.scheduleSave();
     render();
   };
@@ -604,6 +1127,49 @@ function wireEvents() {
     render();
   };
 
+  // Water
+  document.querySelectorAll("[data-water]").forEach((el) => {
+    el.onclick = () => addWater(num(el.getAttribute("data-water")));
+  });
+  document.getElementById("waterAddBtn").onclick = () => {
+    const v = num(document.getElementById("waterCustom").value);
+    if (v) addWater(v);
+  };
+  document.getElementById("waterUndoBtn").onclick = () => {
+    const today = todayStr();
+    for (let i = State.data.waterLog.length - 1; i >= 0; i--) {
+      if (State.data.waterLog[i].date === today) { State.data.waterLog.splice(i, 1); break; }
+    }
+    State.scheduleSave();
+    render();
+  };
+
+  // Favorites (quick add)
+  document.querySelectorAll("[data-fav]").forEach((el) => {
+    el.onclick = () => {
+      const fav = State.derived.favorites[num(el.getAttribute("data-fav"))];
+      if (!fav) return;
+      State.data.foodLog.push({
+        id: uid(), date: todayStr(), description: fav.description, calories: fav.calories,
+        protein: fav.protein ?? null, carbs: fav.carbs ?? null, fat: fav.fat ?? null,
+      });
+      State.scheduleSave();
+      render();
+    };
+  });
+
+  // Edit / delete
+  document.querySelectorAll("[data-edit]").forEach((el) => {
+    el.onclick = () => openEditModal(el.getAttribute("data-edit"), el.getAttribute("data-id"));
+  });
+  document.querySelectorAll("[data-del]").forEach((el) => {
+    el.onclick = (ev) => {
+      ev.stopPropagation();
+      if (confirm("Delete this entry?")) deleteEntry(el.getAttribute("data-del"), el.getAttribute("data-id"));
+    };
+  });
+
+  // Activity chart bars → select day
   document.querySelectorAll(".bar").forEach((el) => {
     el.addEventListener("click", () => {
       State.selectedDay = el.getAttribute("data-date");
@@ -612,10 +1178,17 @@ function wireEvents() {
   });
 }
 
+function addWater(ml) {
+  State.data.waterLog.push({ id: uid(), date: todayStr(), ml });
+  State.scheduleSave();
+  render();
+}
+
 /* ============================================================
    BOOT
    ============================================================ */
 async function boot() {
+  Theme.apply();
   State.load();
   render();
 
@@ -627,7 +1200,7 @@ async function boot() {
     try {
       const remote = await dbxFetchJson(DBX_DATA_PATH);
       if (remote) {
-        State.data = remote;
+        State.data = normalize(remote);
         State.cacheLocally();
       } else {
         // first run: seed Dropbox with current local/seed data
