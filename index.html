@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Basecamp</title>
+<link rel="icon" href="data:,">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #EEEFE9; --bg-elevated: #FFFFFF; --ink: #1F2421; --ink-soft: #62695F;
+    --moss: #3F6B4A; --moss-deep: #2C4E35; --rust: #B9552C; --teal: #2C6E63; --line: #DBDCD3;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: var(--font-body); color: var(--ink); }
+  .basecamp { padding: 24px; max-width: 720px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; }
+  .muted { color: var(--ink-soft); font-size: 12.5px; }
+  .panel { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .panel-head h3 { font-size: 16px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 18px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+  .stat-card { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .stat-card .icon-row { display: flex; align-items: center; gap: 6px; color: var(--moss); margin-bottom: 8px; font-size: 15px; }
+  .stat-card .label { font-size: 11.5px; color: var(--ink-soft); }
+  .stat-card .value { font-family: var(--font-mono); font-size: 22px; font-weight: 500; }
+  .stat-card .value .unit { font-size: 11px; color: var(--ink-soft); margin-left: 4px; }
+  .stat-card.warn .value { color: var(--rust); }
+  .log-list { list-style: none; margin: 0; padding: 0; max-height: 200px; overflow-y: auto; }
+  .log-list li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .log-list li:last-child { border-bottom: none; }
+  .log-list .cal { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+  .log-list .empty { border: none; padding: 10px 0; }
+  .inline-form { display: flex; gap: 6px; margin-top: 10px; }
+  .inline-form input { flex: 1; min-width: 0; font-family: var(--font-body); font-size: 13px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
+  .inline-form input:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
+  .inline-form .cal-input { flex: 0 0 72px; }
+  .btn { display: inline-flex; align-items: center; gap: 4px; justify-content: center; background: var(--moss); color: white; border: none; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: var(--moss-deep); }
+  .btn.secondary { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+  .btn.secondary:hover { background: var(--line); }
+  .note { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px; font-size: 12.5px; color: var(--ink-soft); padding: 12px 14px; background: rgba(63,107,74,0.06); border-radius: 10px; border: 1px solid var(--line); }
+  .warn-note { background: rgba(185,85,44,0.07); }
+  .sync-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
+  .sync-dot.ok { background: var(--moss); }
+  .sync-dot.syncing { background: #C9A227; animation: pulse 1s infinite ease-in-out; }
+  .sync-dot.err { background: var(--rust); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  svg text { font-family: var(--font-body); }
+  .bar { cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="basecamp" id="app"></div>
+
+<script>
+/* ============================================================
+   SEED DATA — used only the first time the app runs with no
+   Dropbox/local data yet. After that, Dropbox is the source of
+   truth and Claude edits it directly via chat, or you edit it
+   here in the app.
+   ============================================================ */
+const SEED = {
+  profile: {
+    heightCm: 174, age: 35, startWeight: 85, goalWeight: 75,
+    activity: "light", pace: 0.5
+  },
+  weightLog: [
+    { id: "w1", date: "2026-07-30", weight: 85 }
+  ],
+  foodLog: [
+    { id: "f1", date: "2026-07-30", description: "2 Bernerwürstel (S-Budget), 38g fat / 25g protein / 3.3g salt", calories: 450 },
+    { id: "f2", date: "2026-07-30", description: "2.5 Žemlje za dopeko (S-Budget bake-off rolls, 125g, 249kcal/100g label)", calories: 311 },
+    { id: "f3", date: "2026-07-30", description: "1 tbsp mayonnaise (~14g, 715kcal/100g label)", calories: 100 },
+    { id: "f4", date: "2026-07-30", description: "1 tbsp mustard (~15g, 117kcal/100g label)", calories: 18 },
+    { id: "f5", date: "2026-07-30", description: "5 pickles (~175g est., 14kcal/100g label)", calories: 25 },
+    { id: "f6", date: "2026-07-30", description: "Monster The Doctor, 500ml (44kcal/100ml)", calories: 220 },
+    { id: "f7", date: "2026-07-30", description: "3 slices bread, olive oil, tomatoes, burratina 125g (243kcal/100g label)", calories: 724 },
+    { id: "f8", date: "2026-07-31", description: "4 nectarines (~560g, ~44kcal/100g)", calories: 250 },
+    { id: "f9", date: "2026-07-31", description: "20 white grapes (~100g, ~69kcal/100g)", calories: 70 },
+    { id: "f10", date: "2026-07-31", description: "Homemade airfryer pizza, 60% of batch", calories: 2005 },
+    { id: "f11", date: "2026-08-01", description: "Half pack ćevapčići + 1 lepinja", calories: 817 },
+    { id: "f12", date: "2026-08-01", description: "1 tbsp ajvar + 1 small red onion", calories: 41 },
+    { id: "f13", date: "2026-08-01", description: "200g tomatoes", calories: 36 },
+    { id: "f14", date: "2026-08-01", description: "2x Fridin ice cream tubs", calories: 2012 },
+    { id: "f15", date: "2026-08-02", description: "2 wieners, bread, pickles, mayo, mustard", calories: 756 },
+    { id: "f16", date: "2026-08-02", description: "3 toast sandwiches, ham + mozzarella", calories: 760 },
+    { id: "f17", date: "2026-08-02", description: "1 Kinder Pinguì", calories: 135 },
+    { id: "f18", date: "2026-08-03", description: "Pizza burek, bakery piece", calories: 650 },
+    { id: "f19", date: "2026-08-03", description: "Monster The Doctor 500ml", calories: 220 },
+    { id: "f20", date: "2026-08-03", description: "Frozen fish product (Spar), half package", calories: 428 },
+    { id: "f21", date: "2026-08-03", description: "Homemade fries, 2.5 medium potatoes", calories: 710 },
+    { id: "f22", date: "2026-08-03", description: "1 tbsp ketchup", calories: 20 },
+    { id: "f23", date: "2026-08-03", description: "1 tbsp tartar sauce", calories: 45 },
+    { id: "f24", date: "2026-08-03", description: "1 piece blueberry cake", calories: 350 },
+    { id: "f25", date: "2026-08-04", description: "Monster The Doctor 500ml", calories: 220 },
+    { id: "f26", date: "2026-08-04", description: "6/10 of a margherita pizza", calories: 540 },
+    { id: "f27", date: "2026-08-04", description: "Aloe vera juice", calories: 175 },
+    { id: "f28", date: "2026-08-05", description: "Chorizo baguette, Pierre Baguette brand, 200g", calories: 592 },
+    { id: "f29", date: "2026-08-05", description: "Monster The Doctor 500ml", calories: 220 },
+    { id: "f30", date: "2026-08-05", description: "Airfryer chicken, ~200g", calories: 360 },
+    { id: "f31", date: "2026-08-05", description: "Large shopska salad", calories: 400 },
+    { id: "f32", date: "2026-08-04", description: "1 piece blueberry cake", calories: 350 },
+    { id: "f33", date: "2026-08-06", description: "2 large žemlje/rolls", calories: 480 },
+    { id: "f34", date: "2026-08-06", description: "20 dag (200g) Poli pileča salama", calories: 482 },
+    { id: "f35", date: "2026-08-06", description: "2 slices Šmarski rok cheese", calories: 100 },
+    { id: "f36", date: "2026-08-06", description: "2 slices white bread", calories: 160 },
+    { id: "f37", date: "2026-08-06", description: "Tuna pikantna pašteta, standard tin ~95g", calories: 290 },
+    { id: "f38", date: "2026-08-06", description: "Shopska salad, regular portion", calories: 280 },
+    { id: "f39", date: "2026-08-07", description: "2 bananas (~105kcal each)", calories: 210 },
+    { id: "f40", date: "2026-08-07", description: "Butter Chicken-Style Eggs, whole recipe", calories: 1055 },
+    { id: "f41", date: "2026-08-07", description: "Medium popcorn, IMAX Cinestar Zagreb", calories: 440 },
+    { id: "f42", date: "2026-08-07", description: "Medium Coca-Cola, cinema", calories: 210 },
+    { id: "f43", date: "2026-08-07", description: "2x McDonald's Cheeseburger", calories: 554 },
+    { id: "f44", date: "2026-08-07", description: "McDonald's Teriyaki Crispy Burger", calories: 388 },
+    { id: "f45", date: "2026-08-08", description: "McDonald's Cheeseburger", calories: 277 },
+    { id: "f46", date: "2026-08-08", description: "Monster Mango Loco 500ml", calories: 240 },
+    { id: "f47", date: "2026-08-08", description: "Coca-Cola 0.5l", calories: 210 },
+    { id: "f48", date: "2026-08-08", description: "Half mushroom pizza", calories: 500 },
+    { id: "f49", date: "2026-08-08", description: "1 banana (~105kcal)", calories: 105 },
+    { id: "f50", date: "2026-08-08", description: "2x McDonald's Cheeseburger, dinner", calories: 554 },
+    { id: "f51", date: "2026-08-09", description: "2x Frutabela bars, strawberry + forest fruits", calories: 234 },
+    { id: "f52", date: "2026-08-09", description: "Other half of mushroom pizza", calories: 500 },
+    { id: "f53", date: "2026-08-09", description: "Small hot dog pastry (klobasa v testu)", calories: 280 },
+    { id: "f54", date: "2026-08-09", description: "Mini pizza, ~15cm", calories: 380 },
+    { id: "f55", date: "2026-08-09", description: "Monster The Doctor 500ml", calories: 220 },
+    { id: "f56", date: "2026-08-09", description: "Zala Harmony, 1.5L", calories: 255 }
+  ],
+  burnLog: [
+    { id: "b1", date: "2026-08-09", description: "4hr geocaching hike incl. steep 240m climb (net extra above baseline)", calories: 1150 }
+  ]
+};
+
+/* ============================================================
+   DROPBOX SYNC
+   ============================================================ */
+const DBX_APP_KEY = "5wzmlqdto4b811u";
+const DBX_DATA_PATH = "/data.json";
+const REDIRECT_URI = location.origin + location.pathname;
+
+const DbxAuth = {
+  getToken() { return localStorage.getItem("dbx_access_token"); },
+  getRefreshToken() { return localStorage.getItem("dbx_refresh_token"); },
+  isConnected() { return !!this.getRefreshToken(); },
+
+  async beginConnect() {
+    const verifier = this._randomString(64);
+    const challenge = await this._sha256base64url(verifier);
+    localStorage.setItem("dbx_pkce_verifier", verifier);
+    const params = new URLSearchParams({
+      client_id: DBX_APP_KEY,
+      response_type: "code",
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+      token_access_type: "offline",
+      redirect_uri: REDIRECT_URI,
+    });
+    location.href = "https://www.dropbox.com/oauth2/authorize?" + params.toString();
+  },
+
+  async handleRedirect() {
+    const url = new URL(location.href);
+    const code = url.searchParams.get("code");
+    if (!code) return false;
+    const verifier = localStorage.getItem("dbx_pkce_verifier");
+    const body = new URLSearchParams({
+      code, grant_type: "authorization_code",
+      client_id: DBX_APP_KEY, redirect_uri: REDIRECT_URI, code_verifier: verifier,
+    });
+    const res = await fetch("https://api.dropboxapi.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    if (!res.ok) { console.error("Dropbox token exchange failed", await res.text()); return false; }
+    const data = await res.json();
+    localStorage.setItem("dbx_access_token", data.access_token);
+    if (data.refresh_token) localStorage.setItem("dbx_refresh_token", data.refresh_token);
+    window.history.replaceState({}, document.title, REDIRECT_URI);
+    return true;
+  },
+
+  async refreshAccessToken() {
+    const refresh_token = this.getRefreshToken();
+    if (!refresh_token) return null;
+    const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token, client_id: DBX_APP_KEY });
+    const res = await fetch("https://api.dropboxapi.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    localStorage.setItem("dbx_access_token", data.access_token);
+    return data.access_token;
+  },
+
+  disconnect() {
+    localStorage.removeItem("dbx_access_token");
+    localStorage.removeItem("dbx_refresh_token");
+    localStorage.removeItem("dbx_pkce_verifier");
+  },
+
+  _randomString(len) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+    const arr = new Uint8Array(len);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, (b) => chars[b % chars.length]).join("");
+  },
+  async _sha256base64url(str) {
+    const enc = new TextEncoder().encode(str);
+    const digest = await crypto.subtle.digest("SHA-256", enc);
+    let b = String.fromCharCode(...new Uint8Array(digest));
+    return btoa(b).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  },
+};
+
+async function dbxFetchJson(path) {
+  let token = DbxAuth.getToken();
+  const doFetch = async (tok) => fetch("https://content.dropboxapi.com/2/files/download", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + tok,
+      "Dropbox-API-Arg": JSON.stringify({ path }),
+    },
+  });
+  let res = await doFetch(token);
+  if (res.status === 401) {
+    token = await DbxAuth.refreshAccessToken();
+    if (!token) return null;
+    res = await doFetch(token);
+  }
+  if (res.status === 409) return null; // not found yet
+  if (!res.ok) throw new Error("Dropbox download failed: " + res.status);
+  return await res.json();
+}
+
+async function dbxUploadJson(path, obj) {
+  let token = DbxAuth.getToken();
+  const doUpload = async (tok) => fetch("https://content.dropboxapi.com/2/files/upload", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + tok,
+      "Dropbox-API-Arg": JSON.stringify({ path, mode: "overwrite", mute: true }),
+      "Content-Type": "application/octet-stream",
+    },
+    body: JSON.stringify(obj, null, 2),
+  });
+  let res = await doUpload(token);
+  if (res.status === 401) {
+    token = await DbxAuth.refreshAccessToken();
+    if (!token) throw new Error("Not authenticated");
+    res = await doUpload(token);
+  }
+  if (!res.ok) throw new Error("Dropbox upload failed: " + res.status);
+  return await res.json();
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const State = {
+  data: null, // { profile, weightLog, foodLog, burnLog }
+  selectedDay: null,
+  syncStatus: "idle", // idle | syncing | ok | err | offline
+  saveTimer: null,
+
+  load() {
+    const cached = localStorage.getItem("basecamp_cache");
+    this.data = cached ? JSON.parse(cached) : JSON.parse(JSON.stringify(SEED));
+  },
+  cacheLocally() {
+    localStorage.setItem("basecamp_cache", JSON.stringify(this.data));
+  },
+  scheduleSave() {
+    this.cacheLocally();
+    if (!DbxAuth.isConnected()) return;
+    clearTimeout(this.saveTimer);
+    this.setSync("syncing");
+    this.saveTimer = setTimeout(async () => {
+      try {
+        await dbxUploadJson(DBX_DATA_PATH, this.data);
+        this.setSync("ok");
+      } catch (e) {
+        console.error(e);
+        this.setSync("err");
+      }
+    }, 900);
+  },
+  setSync(status) {
+    this.syncStatus = status;
+    renderSyncRow();
+  },
+};
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const uid = () => Math.random().toString(36).slice(2, 10);
+const fmt = (n, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toLocaleString();
+
+function bmr({ weight, heightCm, age }) {
+  return 10 * weight + 6.25 * heightCm - 5 * age + 5;
+}
+const ACTIVITY = {
+  sedentary: { label: "Sedentary (desk job, little exercise)", mult: 1.2 },
+  light: { label: "Light (occasional runs/hikes/home training)", mult: 1.375 },
+  moderate: { label: "Moderate (3-5 sessions/week)", mult: 1.55 },
+  active: { label: "Very active (6-7 sessions/week)", mult: 1.725 },
+};
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function computeDerived() {
+  const { profile, weightLog, foodLog, burnLog } = State.data;
+  const currentWeight = weightLog.length
+    ? [...weightLog].sort((a, b) => a.date.localeCompare(b.date)).slice(-1)[0].weight
+    : profile.startWeight;
+
+  const b = bmr({ weight: currentWeight, heightCm: profile.heightCm, age: profile.age });
+  const tdee = b * ACTIVITY[profile.activity].mult;
+  const weeklyDeficit = profile.pace * 7700;
+  const target = Math.max(Math.round(tdee - weeklyDeficit / 7), 1200);
+
+  const startWeight = profile.startWeight, goalWeight = profile.goalWeight;
+  let progressPct = startWeight === goalWeight ? 100 : ((startWeight - currentWeight) / (startWeight - goalWeight)) * 100;
+  progressPct = Math.min(100, Math.max(0, progressPct));
+
+  const today = todayStr();
+  const todaysFood = foodLog.filter((f) => f.date === today);
+  const todaysBurn = burnLog.filter((b2) => b2.date === today);
+  const consumed = todaysFood.reduce((s, f) => s + Number(f.calories), 0);
+  const burned = todaysBurn.reduce((s, b2) => s + Number(b2.calories), 0);
+  const remaining = target - consumed + burned;
+
+  const chartData = [...weightLog].sort((a, b2) => a.date.localeCompare(b2.date)).map((w) => ({ date: w.date.slice(5), weight: w.weight }));
+
+  const byDate = {};
+  for (const f of foodLog) { byDate[f.date] = byDate[f.date] || { food: 0, burn: 0 }; byDate[f.date].food += Number(f.calories); }
+  for (const bb of burnLog) { byDate[bb.date] = byDate[bb.date] || { food: 0, burn: 0 }; byDate[bb.date].burn += Number(bb.calories); }
+  const dailyActivityData = Object.entries(byDate).sort(([a], [c]) => a.localeCompare(c)).map(([date, v]) => ({
+    date, label: date.slice(5), food: Math.round(v.food), burnNeg: -Math.round(v.burn), net: Math.round(v.food - v.burn),
+  }));
+
+  const activeDay = State.selectedDay || today;
+  const activeDayFood = foodLog.filter((f) => f.date === activeDay);
+  const activeDayBurn = burnLog.filter((b2) => b2.date === activeDay);
+  const activeDayFoodTotal = activeDayFood.reduce((s, f) => s + Number(f.calories), 0);
+  const activeDayBurnTotal = activeDayBurn.reduce((s, b2) => s + Number(b2.calories), 0);
+
+  return {
+    currentWeight, targets: { bmr: Math.round(b), tdee: Math.round(tdee), target },
+    progressPct, today, todaysFood, todaysBurn, consumed, burned, remaining,
+    chartData, dailyActivityData, activeDay, activeDayFood, activeDayBurn,
+    activeDayFoodTotal, activeDayBurnTotal, activeDayNet: activeDayFoodTotal - activeDayBurnTotal,
+  };
+}
+
+function svgTrailHero(profile, currentWeight, progressPct) {
+  const pathD = "M10,110 C 90,105 140,60 200,70 C 260,80 300,40 360,45 C 430,50 470,20 520,18 C 560,17 590,15 610,14";
+  const xs = [10, 90, 140, 200, 260, 300, 360, 430, 470, 520, 560, 590, 610];
+  const ys = [110, 105, 60, 70, 80, 40, 45, 50, 20, 18, 17, 15, 14];
+  const t = progressPct / 100;
+  const idx = Math.min(xs.length - 2, Math.floor(t * (xs.length - 1)));
+  const localT = t * (xs.length - 1) - idx;
+  const mx = xs[idx] + (xs[idx + 1] - xs[idx]) * localT;
+  const my = ys[idx] + (ys[idx + 1] - ys[idx]) * localT;
+  const remainingKg = Math.max(0, currentWeight - profile.goalWeight);
+
+  return `
+  <div class="panel" style="padding-bottom:10px">
+    <svg viewBox="0 0 640 150" width="100%" height="150" style="display:block">
+      <defs>
+        <linearGradient id="trailFade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="var(--line)" />
+          <stop offset="${progressPct}%" stop-color="var(--moss)" />
+          <stop offset="${progressPct}%" stop-color="var(--line)" />
+          <stop offset="100%" stop-color="var(--line)" />
+        </linearGradient>
+      </defs>
+      <path d="${pathD}" fill="none" stroke="url(#trailFade)" stroke-width="3" stroke-linecap="round" />
+      <circle cx="10" cy="110" r="4" fill="var(--ink-soft)" />
+      <text x="10" y="132" font-size="11" fill="var(--ink-soft)">Trailhead</text>
+      <text x="10" y="145" font-size="10.5" fill="var(--ink-soft)" font-family="var(--font-mono)">${fmt(profile.startWeight)} kg</text>
+      <circle cx="610" cy="14" r="4" fill="var(--rust)" />
+      <text x="562" y="34" font-size="11" fill="var(--rust)">Summit</text>
+      <text x="574" y="47" font-size="10.5" fill="var(--rust)" font-family="var(--font-mono)">${fmt(profile.goalWeight)} kg</text>
+      <circle cx="${mx}" cy="${my}" r="7" fill="var(--bg-elevated)" stroke="var(--moss)" stroke-width="2.5" />
+      <circle cx="${mx}" cy="${my}" r="3" fill="var(--moss)" />
+    </svg>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px">
+      <span style="font-family:var(--font-mono);font-size:13px;color:var(--ink-soft)">${fmt(progressPct, 0)}% of the way up</span>
+      <span style="font-family:var(--font-mono);font-size:13px;color:var(--ink-soft)">${remainingKg > 0 ? fmt(remainingKg) + " kg to summit" : "Summit reached 🏔️"}</span>
+    </div>
+  </div>`;
+}
+
+function svgWeightChart(chartData, goalWeight) {
+  if (chartData.length <= 1) {
+    return `<p class="muted" style="padding:20px 0">Log your weight a couple of times to see the trend line.</p>`;
+  }
+  const W = 680, H = 200, padL = 36, padR = 12, padT = 10, padB = 24;
+  const weights = chartData.map((d) => d.weight).concat([goalWeight]);
+  const minW = Math.min(...weights) - 1, maxW = Math.max(...weights) + 1;
+  const x = (i) => padL + (i / (chartData.length - 1)) * (W - padL - padR);
+  const y = (w) => padT + (1 - (w - minW) / (maxW - minW)) * (H - padT - padB);
+  const points = chartData.map((d, i) => `${x(i)},${y(d.weight)}`).join(" ");
+  const goalY = y(goalWeight);
+  const dots = chartData.map((d, i) => `<circle cx="${x(i)}" cy="${y(d.weight)}" r="3" fill="var(--teal)"><title>${d.date}: ${d.weight}kg</title></circle>`).join("");
+  const labels = chartData.map((d, i) => `<text x="${x(i)}" y="${H - 6}" font-size="10" fill="var(--ink-soft)" text-anchor="middle">${d.date}</text>`).join("");
+  return `
+  <svg viewBox="0 0 ${W} ${H}" width="100%" height="200" style="display:block">
+    <line x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}" stroke="var(--rust)" stroke-dasharray="4 4" />
+    <text x="${W - padR}" y="${goalY - 4}" font-size="10" fill="var(--rust)" text-anchor="end">goal</text>
+    <polyline points="${points}" fill="none" stroke="var(--teal)" stroke-width="2.5" />
+    ${dots}
+    ${labels}
+  </svg>`;
+}
+
+function svgActivityChart(dailyActivityData, target, activeDay) {
+  if (dailyActivityData.length === 0) {
+    return `<p class="muted" style="padding:20px 0">Log some food or activity to see your daily totals.</p>`;
+  }
+  const W = 680, H = 220, padL = 40, padR = 12, padT = 10, padB = 22;
+  const maxFood = Math.max(...dailyActivityData.map((d) => d.food), target);
+  const maxBurn = Math.max(...dailyActivityData.map((d) => Math.abs(d.burnNeg)), 1);
+  const zeroY = padT + (maxFood / (maxFood + maxBurn)) * (H - padT - padB);
+  const scale = (H - padT - padB) / (maxFood + maxBurn);
+  const bw = ((W - padL - padR) / dailyActivityData.length) * 0.6;
+  const gap = ((W - padL - padR) / dailyActivityData.length);
+
+  const targetY = zeroY - target * scale;
+
+  let bars = "";
+  dailyActivityData.forEach((d, i) => {
+    const cx = padL + gap * i + gap / 2;
+    const bx = cx - bw / 2;
+    const foodH = d.food * scale;
+    const burnH = Math.abs(d.burnNeg) * scale;
+    const selected = d.date === activeDay;
+    const stroke = selected ? `stroke="var(--ink)" stroke-width="2"` : "";
+    bars += `<rect class="bar" data-date="${d.date}" x="${bx}" y="${zeroY - foodH}" width="${bw}" height="${foodH}" rx="4" fill="var(--rust)" ${stroke}><title>${d.date}: +${d.food} kcal food</title></rect>`;
+    bars += `<rect class="bar" data-date="${d.date}" x="${bx}" y="${zeroY}" width="${bw}" height="${burnH}" rx="4" fill="var(--moss)" ${stroke}><title>${d.date}: -${Math.abs(d.burnNeg)} kcal activity</title></rect>`;
+    bars += `<text x="${cx}" y="${H - 6}" font-size="10" fill="var(--ink-soft)" text-anchor="middle">${d.label}</text>`;
+  });
+
+  return `
+  <svg viewBox="0 0 ${W} ${H}" width="100%" height="220" style="display:block" id="activityChartSvg">
+    <line x1="${padL}" y1="${zeroY}" x2="${W - padR}" y2="${zeroY}" stroke="var(--line)" />
+    <line x1="${padL}" y1="${targetY}" x2="${W - padR}" y2="${targetY}" stroke="var(--rust)" stroke-dasharray="4 4" />
+    <text x="${W - padR}" y="${targetY - 4}" font-size="10" fill="var(--rust)" text-anchor="end">target</text>
+    ${bars}
+  </svg>`;
+}
+
+function renderSyncRow() {
+  const el = document.getElementById("syncRow");
+  if (!el) return;
+  const status = State.syncStatus;
+  const connected = DbxAuth.isConnected();
+  let dotClass = "sync-dot", label = "";
+  if (!connected) { label = "Not connected to Dropbox — changes saved on this device only"; }
+  else if (status === "syncing") { dotClass += " syncing"; label = "Syncing to Dropbox…"; }
+  else if (status === "ok") { dotClass += " ok"; label = "Synced to Dropbox"; }
+  else if (status === "err") { dotClass += " err"; label = "Sync failed — will retry on next change"; }
+  else { dotClass += " ok"; label = "Connected to Dropbox"; }
+  el.innerHTML = `<span class="${dotClass}"></span><span>${label}</span>`;
+}
+
+function render() {
+  const d = computeDerived();
+  const { profile } = State.data;
+  const app = document.getElementById("app");
+
+  app.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">🏔️</span>
+        <h1 style="font-size:22px;font-weight:600;letter-spacing:-0.01em">Basecamp</h1>
+      </div>
+      <button class="btn secondary" id="dbxBtn" style="font-size:12px">${DbxAuth.isConnected() ? "Disconnect Dropbox" : "Connect Dropbox"}</button>
+    </div>
+    <div class="sync-row" id="syncRow"></div>
+
+    ${svgTrailHero(profile, d.currentWeight, d.progressPct)}
+
+    <div class="grid">
+      <div class="stat-card"><div class="icon-row">🔥 <span class="label">Target intake today</span></div><div class="value">${d.targets.target}<span class="unit">kcal</span></div></div>
+      <div class="stat-card"><div class="icon-row">🍽️ <span class="label">Consumed today</span></div><div class="value">${d.consumed}<span class="unit">kcal</span></div></div>
+      <div class="stat-card"><div class="icon-row">👣 <span class="label">Burned today</span></div><div class="value">${d.burned}<span class="unit">kcal</span></div></div>
+      <div class="stat-card${d.remaining < 0 ? " warn" : ""}"><div class="icon-row">⚖️ <span class="label">Remaining budget</span></div><div class="value">${d.remaining}<span class="unit">kcal</span></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Weight trend</h3><span class="muted">${fmt(d.currentWeight)} kg current · ${fmt(profile.goalWeight)} kg goal</span></div>
+      ${svgWeightChart(d.chartData, profile.goalWeight)}
+      <div class="inline-form">
+        <input type="number" id="wInput" placeholder="Weight today (kg)" />
+        <button class="btn" id="logWeightBtn">+ Log weight</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Activity per day</h3><span class="muted">tap a bar · food red, activity green</span></div>
+      ${svgActivityChart(d.dailyActivityData, d.targets.target, d.activeDay)}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>${d.activeDay === d.today ? "Today" : d.activeDay}</h3><span class="muted">${d.activeDayFoodTotal} in · ${d.activeDayBurnTotal} out · ${d.activeDayNet} net</span></div>
+      <ul class="log-list">
+        ${d.activeDayFood.length === 0 && d.activeDayBurn.length === 0 ? `<li class="muted empty">Nothing logged for this day.</li>` : ""}
+        ${d.activeDayFood.map((f) => `<li><span>${escapeHtml(f.description)}</span><span class="cal" style="color:var(--rust)">+${f.calories} kcal</span></li>`).join("")}
+        ${d.activeDayBurn.map((b) => `<li><span>${escapeHtml(b.description)}</span><span class="cal" style="color:var(--moss)">-${b.calories} kcal</span></li>`).join("")}
+      </ul>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-head"><h3>Food today</h3><span class="muted">${d.todaysFood.length} entr${d.todaysFood.length === 1 ? "y" : "ies"}</span></div>
+        <ul class="log-list">
+          ${d.todaysFood.length === 0 ? `<li class="muted empty">Nothing logged yet today.</li>` : ""}
+          ${d.todaysFood.map((f) => `<li><span>${escapeHtml(f.description)}</span><span class="cal">${f.calories} kcal</span></li>`).join("")}
+        </ul>
+        <div class="inline-form">
+          <input id="foodDesc" placeholder="What did you eat?" />
+          <input type="number" id="foodCal" class="cal-input" placeholder="kcal" />
+          <button class="btn" id="logFoodBtn">+</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Activity today</h3><span class="muted">${d.todaysBurn.length} entr${d.todaysBurn.length === 1 ? "y" : "ies"}</span></div>
+        <ul class="log-list">
+          ${d.todaysBurn.length === 0 ? `<li class="muted empty">No activity logged yet today.</li>` : ""}
+          ${d.todaysBurn.map((b) => `<li><span>${escapeHtml(b.description)}</span><span class="cal">${b.calories} kcal</span></li>`).join("")}
+        </ul>
+        <div class="inline-form">
+          <input id="burnDesc" placeholder="Run, hike, home workout…" />
+          <input type="number" id="burnCal" class="cal-input" placeholder="kcal" />
+          <button class="btn" id="logBurnBtn">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="note${DbxAuth.isConnected() ? "" : " warn-note"}">
+      <span>${DbxAuth.isConnected()
+        ? "Entries here sync to your Dropbox automatically, and Claude can add entries too when you tell it what you ate in chat."
+        : "Not connected to Dropbox yet — entries are saved to this browser only. Connect Dropbox above to sync across devices and let Claude add entries from chat."}</span>
+    </div>
+  `;
+
+  renderSyncRow();
+  wireEvents();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function wireEvents() {
+  document.getElementById("dbxBtn").onclick = () => {
+    if (DbxAuth.isConnected()) {
+      if (confirm("Disconnect Dropbox? Your data stays on this device but won't sync anymore.")) {
+        DbxAuth.disconnect();
+        render();
+      }
+    } else {
+      DbxAuth.beginConnect();
+    }
+  };
+
+  document.getElementById("logWeightBtn").onclick = () => {
+    const val = parseFloat(document.getElementById("wInput").value);
+    if (!val) return;
+    const today = todayStr();
+    State.data.weightLog = State.data.weightLog.filter((w) => w.date !== today);
+    State.data.weightLog.push({ id: uid(), date: today, weight: val });
+    State.scheduleSave();
+    render();
+  };
+
+  document.getElementById("logFoodBtn").onclick = () => {
+    const desc = document.getElementById("foodDesc").value.trim();
+    const val = parseFloat(document.getElementById("foodCal").value);
+    if (!desc || !val) return;
+    State.data.foodLog.push({ id: uid(), date: todayStr(), description: desc, calories: val });
+    State.scheduleSave();
+    render();
+  };
+
+  document.getElementById("logBurnBtn").onclick = () => {
+    const desc = document.getElementById("burnDesc").value.trim();
+    const val = parseFloat(document.getElementById("burnCal").value);
+    if (!desc || !val) return;
+    State.data.burnLog.push({ id: uid(), date: todayStr(), description: desc, calories: val });
+    State.scheduleSave();
+    render();
+  };
+
+  document.querySelectorAll(".bar").forEach((el) => {
+    el.addEventListener("click", () => {
+      State.selectedDay = el.getAttribute("data-date");
+      render();
+    });
+  });
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+async function boot() {
+  State.load();
+  render();
+
+  const cameFromOAuth = await DbxAuth.handleRedirect();
+  if (cameFromOAuth) render();
+
+  if (DbxAuth.isConnected()) {
+    State.setSync("syncing");
+    try {
+      const remote = await dbxFetchJson(DBX_DATA_PATH);
+      if (remote) {
+        State.data = remote;
+        State.cacheLocally();
+      } else {
+        // first run: seed Dropbox with current local/seed data
+        await dbxUploadJson(DBX_DATA_PATH, State.data);
+      }
+      State.setSync("ok");
+    } catch (e) {
+      console.error(e);
+      State.setSync("err");
+    }
+    render();
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
