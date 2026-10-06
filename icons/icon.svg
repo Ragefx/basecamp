@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3F6B4A"/>
+      <stop offset="1" stop-color="#2C4E35"/>
+    </linearGradient>
+    <clipPath id="tile"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <!-- back peak -->
+  <path d="M40 420 L178 214 L262 330 L300 290 L472 420 Z" fill="#7FA888" opacity="0.55"/>
+  <!-- main peak -->
+  <path d="M60 432 L276 132 L460 432 Z" fill="#EEEFE9"/>
+  <!-- shadow face -->
+  <path d="M276 132 L460 432 L330 432 L300 300 Z" fill="#DBDCD3"/>
+  <!-- trail -->
+  <path d="M150 432 C 210 400 250 390 238 350 C 226 312 300 300 286 250 C 276 214 290 180 276 150"
+        fill="none" stroke="#3F6B4A" stroke-width="13" stroke-linecap="round" stroke-dasharray="1 27"/>
+  <!-- summit flag -->
+  <line x1="276" y1="138" x2="276" y2="64" stroke="#1F2421" stroke-width="10" stroke-linecap="round"/>
+  <path d="M281 66 L350 86 L281 108 Z" fill="#B9552C"/>
+  <!-- ground -->
+  <rect x="0" y="428" width="512" height="84" fill="#2C4E35"/>
+  </g>
+</svg>
